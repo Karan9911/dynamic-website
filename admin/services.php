@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($iconType === 'upload' && isset($_FILES['icon_image']) && $_FILES['icon_image']['error'] === UPLOAD_ERR_OK) {
                     $uploadResult = uploadImage($_FILES['icon_image'], 'services');
                     if ($uploadResult['success']) {
-                        $iconPath = 'services/' . $uploadResult['filename'];
+                        $iconPath = $uploadResult['path'];
                     }
                 }
                 
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Update getAllServices function to include icon data
+// Get all services with icon data
 function getAllServicesWithIcons() {
     $db = getDB();
     $stmt = $db->prepare("SELECT * FROM services ORDER BY name");

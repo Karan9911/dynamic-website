@@ -84,14 +84,22 @@
                             </div>
                         </div>
                     <?php else: ?>
-                        <li class="nav-item">
+                        <!-- Desktop Login/Signup -->
+                        <li class="nav-item d-none d-lg-block">
                             <a class="nav-link" href="<?php echo SITE_URL; ?>/login.php">
                                 <i class="bi bi-box-arrow-in-right me-1"></i>Login
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item d-none d-lg-block">
                             <a class="nav-link btn btn-primary text-white ms-2 px-3" href="<?php echo SITE_URL; ?>/signup.php">
                                 <i class="bi bi-person-plus me-1"></i>Sign Up
+                            </a>
+                        </li>
+                        
+                        <!-- Mobile User Icon -->
+                        <li class="nav-item d-lg-none">
+                            <a class="nav-link" href="#" onclick="openMobileLoginModal()">
+                                <i class="bi bi-person-circle fs-4"></i>
                             </a>
                         </li>
                     <?php endif; ?>
@@ -102,4 +110,47 @@
     
     <!-- Add padding to body to account for fixed navbar -->
     <div style="padding-top: 80px;"></div>
+    <?php endif; ?>
+
+    <!-- Mobile Login Modal -->
+    <?php if (!isUserLoggedIn()): ?>
+    <div class="modal fade" id="mobileLoginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Account Access</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-person-circle display-1 text-primary"></i>
+                        <h4 class="mt-3">Welcome to Serenity Spa</h4>
+                        <p class="text-muted">Sign in to book appointments and manage your profile</p>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="<?php echo SITE_URL; ?>/login.php" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </a>
+                        <a href="<?php echo SITE_URL; ?>/signup.php" class="btn btn-outline-primary btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>Create Account
+                        </a>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            <i class="bi bi-shield-check me-1"></i>
+                            Your data is secure with us
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function openMobileLoginModal() {
+            new bootstrap.Modal(document.getElementById('mobileLoginModal')).show();
+        }
+    </script>
     <?php endif; ?>

@@ -571,6 +571,9 @@ function initializeDatabase() {
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             description TEXT,
+            icon_type ENUM('bootstrap', 'upload') DEFAULT 'bootstrap',
+            icon_value VARCHAR(100),
+            icon_image VARCHAR(255),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )",
         
@@ -679,15 +682,15 @@ function insertDefaultData() {
         $stmt->execute();
         if ($stmt->fetch()['count'] == 0) {
             $services = [
-                ['Swedish Massage', 'Relaxing full-body massage with gentle pressure'],
-                ['Deep Tissue Massage', 'Therapeutic massage targeting deep muscle layers'],
-                ['Hot Stone Therapy', 'Heated stones placed on body for deep relaxation'],
-                ['Aromatherapy', 'Essential oils massage for mind and body wellness'],
-                ['Reflexology', 'Pressure point massage focusing on feet and hands'],
-                ['Thai Massage', 'Traditional stretching and pressure point therapy']
+                ['Swedish Massage', 'Relaxing full-body massage with gentle pressure', 'bootstrap', 'bi-heart-pulse', null],
+                ['Deep Tissue Massage', 'Therapeutic massage targeting deep muscle layers', 'bootstrap', 'bi-activity', null],
+                ['Hot Stone Therapy', 'Heated stones placed on body for deep relaxation', 'bootstrap', 'bi-fire', null],
+                ['Aromatherapy', 'Essential oils massage for mind and body wellness', 'bootstrap', 'bi-flower1', null],
+                ['Reflexology', 'Pressure point massage focusing on feet and hands', 'bootstrap', 'bi-hand-thumbs-up', null],
+                ['Thai Massage', 'Traditional stretching and pressure point therapy', 'bootstrap', 'bi-person-arms-up', null]
             ];
             
-            $stmt = $db->prepare("INSERT INTO services (name, description) VALUES (?, ?)");
+            $stmt = $db->prepare("INSERT INTO services (name, description, icon_type, icon_value, icon_image) VALUES (?, ?, ?, ?, ?)");
             foreach ($services as $service) {
                 $stmt->execute($service);
             }

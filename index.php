@@ -9,6 +9,35 @@ initializeDatabase();
 $pageTitle = 'Home';
 $therapists = getAllTherapists();
 $services = getAllServices();
+
+// Get filter parameters for price block
+$priceFilter = $_GET['price_filter'] ?? 'monthly';
+
+// Calculate filtered stats
+$db = getDB();
+$dateCondition = '';
+switch ($priceFilter) {
+    case 'daily':
+        $dateCondition = "DATE(created_at) = CURDATE()";
+        break;
+    case 'monthly':
+        $dateCondition = "MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())";
+        break;
+    case 'yearly':
+        $dateCondition = "YEAR(created_at) = YEAR(CURRENT_DATE())";
+        break;
+}
+
+$stmt = $db->prepare("
+    SELECT SUM(total_amount) as revenue, COUNT(*) as bookings 
+    FROM bookings 
+    WHERE $dateCondition 
+    AND status IN ('confirmed', 'completed')
+");
+$stmt->execute();
+$priceStats = $stmt->fetch();
+$filteredRevenue = $priceStats['revenue'] ?? 0;
+$filteredBookings = $priceStats['bookings'] ?? 0;
 ?>
 
 <?php include 'includes/header.php'; ?>
@@ -39,9 +68,28 @@ $services = getAllServices();
     </div>
 </section>
 
-<!-- Stats Section -->
+<!-- Stats Section with Price Filter -->
 <section class="py-5 bg-white">
     <div class="container">
+        <!-- Price Filter -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="fw-bold mb-0">Business Overview</h3>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <input type="radio" class="btn-check" name="priceFilter" id="daily" value="daily" <?php echo $priceFilter === 'daily' ? 'checked' : ''; ?>>
+                        <label class="btn btn-outline-primary" for="daily">Daily</label>
+                        
+                        <input type="radio" class="btn-check" name="priceFilter" id="monthly" value="monthly" <?php echo $priceFilter === 'monthly' ? 'checked' : ''; ?>>
+                        <label class="btn btn-outline-primary" for="monthly">Monthly</label>
+                        
+                        <input type="radio" class="btn-check" name="priceFilter" id="yearly" value="yearly" <?php echo $priceFilter === 'yearly' ? 'checked' : ''; ?>>
+                        <label class="btn btn-outline-primary" for="yearly">Yearly</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="row g-4">
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card scale-in">
@@ -51,8 +99,8 @@ $services = getAllServices();
             </div>
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card scale-in">
-                    <span class="stats-number">500+</span>
-                    <span class="stats-label">Happy Clients</span>
+                    <span class="stats-number" id="filteredBookings"><?php echo $filteredBookings; ?></span>
+                    <span class="stats-label" id="bookingsLabel"><?php echo ucfirst($priceFilter); ?> Bookings</span>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
@@ -63,8 +111,8 @@ $services = getAllServices();
             </div>
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card scale-in">
-                    <span class="stats-number">5</span>
-                    <span class="stats-label">Years Experience</span>
+                    <span class="stats-number" id="filteredRevenue"><?php echo formatPrice($filteredRevenue); ?></span>
+                    <span class="stats-label" id="revenueLabel"><?php echo ucfirst($priceFilter); ?> Revenue</span>
                 </div>
             </div>
         </div>
@@ -88,11 +136,22 @@ $services = getAllServices();
             
             foreach (array_slice($services, 0, 6) as $service): 
                 $icon = $serviceIcons[$service['name']] ?? 'bi-spa';
+                
+                // Use service icon if available
+                if ($service['icon_type'] === 'bootstrap' && $service['icon_value']) {
+                    $icon = $service['icon_value'];
+                }
             ?>
                 <div class="col-lg-4 col-md-6">
                     <div class="service-card slide-up">
                         <div class="service-icon">
-                            <i class="bi <?php echo $icon; ?>"></i>
+                            <?php if ($service['icon_type'] === 'upload' && $service['icon_image']): ?>
+                                <img src="<?php echo UPLOAD_URL . $service['icon_image']; ?>" 
+                                     alt="<?php echo htmlspecialchars($service['name']); ?>" 
+                                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
+                            <?php else: ?>
+                                <i class="bi <?php echo $icon; ?>"></i>
+                            <?php endif; ?>
                         </div>
                         <h5 class="fw-bold mb-3"><?php echo htmlspecialchars($service['name']); ?></h5>
                         <p class="text-muted"><?php echo htmlspecialchars($service['description']); ?></p>
@@ -294,4 +353,36 @@ $services = getAllServices();
 </section>
 
 <?php include 'includes/booking_modal.php'; ?>
-<?php include 'includes/footer.php'; ?>
+
+<?php 
+$extraScripts = '<script>
+    // Price filter functionality
+    document.querySelectorAll("input[name=\"priceFilter\"]").forEach(radio => {
+        radio.addEventListener("change", function() {
+            const filter = this.value;
+            
+            // Update URL with filter parameter
+            const url = new URL(window.location);
+            url.searchParams.set("price_filter", filter);
+            window.history.pushState({}, "", url);
+            
+            // Update labels
+            document.getElementById("bookingsLabel").textContent = filter.charAt(0).toUpperCase() + filter.slice(1) + " Bookings";
+            document.getElementById("revenueLabel").textContent = filter.charAt(0).toUpperCase() + filter.slice(1) + " Revenue";
+            
+            // Fetch updated data
+            fetch(`get_filtered_stats.php?filter=${filter}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById("filteredBookings").textContent = data.bookings;
+                        document.getElementById("filteredRevenue").textContent = "₹" + new Intl.NumberFormat("en-IN").format(data.revenue);
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+        });
+    });
+</script>';
+
+include 'includes/footer.php'; 
+?>
