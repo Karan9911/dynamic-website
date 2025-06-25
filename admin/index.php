@@ -7,6 +7,9 @@ requireAdminLogin();
 
 $pageTitle = 'Admin Dashboard';
 
+// Get filter parameters
+$revenueFilter = $_GET['revenue_filter'] ?? 'monthly';
+
 // Get statistics
 $db = getDB();
 
@@ -19,7 +22,8 @@ try {
         'total_leads' => 0,
         'new_leads' => 0,
         'total_users' => 0,
-        'revenue_this_month' => 0
+        'revenue_filtered' => 0,
+        'bookings_filtered' => 0
     ];
     
     // Get therapist counts
@@ -68,17 +72,30 @@ try {
         $stats['total_users'] = $result['count'];
     }
     
-    // Get revenue this month
+    // Get filtered revenue and bookings
+    $dateCondition = '';
+    switch ($revenueFilter) {
+        case 'daily':
+            $dateCondition = "DATE(created_at) = CURDATE()";
+            break;
+        case 'monthly':
+            $dateCondition = "MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())";
+            break;
+        case 'yearly':
+            $dateCondition = "YEAR(created_at) = YEAR(CURRENT_DATE())";
+            break;
+    }
+    
     $stmt = $db->prepare("
-        SELECT SUM(total_amount) as revenue 
+        SELECT SUM(total_amount) as revenue, COUNT(*) as bookings 
         FROM bookings 
-        WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) 
-        AND YEAR(created_at) = YEAR(CURRENT_DATE())
+        WHERE $dateCondition 
         AND status IN ('confirmed', 'completed')
     ");
     if ($stmt->execute()) {
         $result = $stmt->fetch();
-        $stats['revenue_this_month'] = $result['revenue'] ?? 0;
+        $stats['revenue_filtered'] = $result['revenue'] ?? 0;
+        $stats['bookings_filtered'] = $result['bookings'] ?? 0;
     }
     
     // Get recent bookings
@@ -112,7 +129,8 @@ try {
         'total_leads' => 0,
         'new_leads' => 0,
         'total_users' => 0,
-        'revenue_this_month' => 0
+        'revenue_filtered' => 0,
+        'bookings_filtered' => 0
     ];
     $recent_bookings = [];
     $recent_leads = [];
@@ -136,6 +154,27 @@ try {
         </div>
     </div>
     
+    <!-- Revenue Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0">Revenue Analytics</h5>
+                    <small class="text-muted">Filter revenue and booking data</small>
+                </div>
+                <div class="col-md-6">
+                    <form method="GET" class="d-flex gap-2">
+                        <select name="revenue_filter" class="form-select" onchange="this.form.submit()">
+                            <option value="daily" <?php echo $revenueFilter === 'daily' ? 'selected' : ''; ?>>Today</option>
+                            <option value="monthly" <?php echo $revenueFilter === 'monthly' ? 'selected' : ''; ?>>This Month</option>
+                            <option value="yearly" <?php echo $revenueFilter === 'yearly' ? 'selected' : ''; ?>>This Year</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Statistics Cards -->
     <div class="row g-3 mb-4">
         <div class="col-lg-3 col-md-6">
@@ -154,8 +193,8 @@ try {
             <div class="stat-card">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stat-number text-success"><?php echo $stats['total_bookings']; ?></div>
-                        <div class="stat-label">Total Bookings</div>
+                        <div class="stat-number text-success"><?php echo $stats['bookings_filtered']; ?></div>
+                        <div class="stat-label"><?php echo ucfirst($revenueFilter); ?> Bookings</div>
                     </div>
                     <i class="bi bi-calendar-check display-4 text-success opacity-25"></i>
                 </div>
@@ -178,8 +217,8 @@ try {
             <div class="stat-card">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stat-number text-info"><?php echo formatPrice($stats['revenue_this_month']); ?></div>
-                        <div class="stat-label">This Month Revenue</div>
+                        <div class="stat-number text-info"><?php echo formatPrice($stats['revenue_filtered']); ?></div>
+                        <div class="stat-label"><?php echo ucfirst($revenueFilter); ?> Revenue</div>
                     </div>
                     <i class="bi bi-currency-rupee display-4 text-info opacity-25"></i>
                 </div>

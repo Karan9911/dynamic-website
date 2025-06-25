@@ -48,6 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 $statusFilter = $_GET['status'] ?? 'all';
 $typeFilter = $_GET['type'] ?? 'all';
 $dateFilter = $_GET['date'] ?? '';
+$dateFrom = $_GET['date_from'] ?? '';
+$dateTo = $_GET['date_to'] ?? '';
 
 // Build query
 $whereConditions = [];
@@ -66,6 +68,16 @@ if ($typeFilter !== 'all') {
 if ($dateFilter) {
     $whereConditions[] = "DATE(created_at) = ?";
     $params[] = $dateFilter;
+} elseif ($dateFrom && $dateTo) {
+    $whereConditions[] = "DATE(created_at) BETWEEN ? AND ?";
+    $params[] = $dateFrom;
+    $params[] = $dateTo;
+} elseif ($dateFrom) {
+    $whereConditions[] = "DATE(created_at) >= ?";
+    $params[] = $dateFrom;
+} elseif ($dateTo) {
+    $whereConditions[] = "DATE(created_at) <= ?";
+    $params[] = $dateTo;
 }
 
 $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
@@ -161,11 +173,11 @@ foreach ($statsResults as $stat) {
         </div>
     </div>
     
-    <!-- Filters -->
+    <!-- Enhanced Filters -->
     <div class="card mb-4">
         <div class="card-body">
             <form method="GET" class="row g-3">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">Status</label>
                     <select class="form-select" name="status">
                         <option value="all" <?php echo $statusFilter === 'all' ? 'selected' : ''; ?>>All Status</option>
@@ -175,7 +187,7 @@ foreach ($statsResults as $stat) {
                         <option value="closed" <?php echo $statusFilter === 'closed' ? 'selected' : ''; ?>>Closed</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">Type</label>
                     <select class="form-select" name="type">
                         <option value="all" <?php echo $typeFilter === 'all' ? 'selected' : ''; ?>>All Types</option>
@@ -185,11 +197,19 @@ foreach ($statsResults as $stat) {
                         <option value="contact" <?php echo $typeFilter === 'contact' ? 'selected' : ''; ?>>Contact Form</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Date</label>
-                    <input type="date" class="form-select" name="date" value="<?php echo $dateFilter; ?>">
+                <div class="col-md-2">
+                    <label class="form-label">Single Date</label>
+                    <input type="date" class="form-control" name="date" value="<?php echo $dateFilter; ?>">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <label class="form-label">From Date</label>
+                    <input type="date" class="form-control" name="date_from" value="<?php echo $dateFrom; ?>">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">To Date</label>
+                    <input type="date" class="form-control" name="date_to" value="<?php echo $dateTo; ?>">
+                </div>
+                <div class="col-md-2">
                     <label class="form-label">&nbsp;</label>
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
@@ -204,7 +224,7 @@ foreach ($statsResults as $stat) {
         </div>
     </div>
     
-    <!-- Leads Table -->
+    <!-- Responsive Leads Table -->
     <div class="card">
         <div class="card-body">
             <?php if (empty($leads)): ?>
@@ -222,9 +242,9 @@ foreach ($statsResults as $stat) {
                                 <th>Customer</th>
                                 <th>Type</th>
                                 <th>Therapist</th>
-                                <th>Message</th>
+                                <th class="d-none d-md-table-cell">Message</th>
                                 <th>Status</th>
-                                <th>Created</th>
+                                <th class="d-none d-lg-table-cell">Created</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -259,7 +279,7 @@ foreach ($statsResults as $stat) {
                                     <td>
                                         <?php echo htmlspecialchars($lead['therapist_name'] ?? 'N/A'); ?>
                                     </td>
-                                    <td>
+                                    <td class="d-none d-md-table-cell">
                                         <div class="message-preview">
                                             <?php echo htmlspecialchars(substr($lead['message'] ?? '', 0, 50)); ?>
                                             <?php if (strlen($lead['message'] ?? '') > 50) echo '...'; ?>
@@ -278,18 +298,18 @@ foreach ($statsResults as $stat) {
                                             <?php echo ucfirst(str_replace('_', ' ', $lead['status'])); ?>
                                         </span>
                                     </td>
-                                    <td>
+                                    <td class="d-none d-lg-table-cell">
                                         <small class="text-muted"><?php echo timeAgo($lead['created_at']); ?></small>
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary" onclick="viewLead(<?php echo $lead['id']; ?>)">
+                                            <button class="btn btn-outline-primary" onclick="viewLead(<?php echo $lead['id']; ?>)" title="View Details">
                                                 <i class="bi bi-eye"></i>
                                             </button>
-                                            <button class="btn btn-outline-success" onclick="updateLeadStatus(<?php echo $lead['id']; ?>)">
+                                            <button class="btn btn-outline-success" onclick="updateLeadStatus(<?php echo $lead['id']; ?>)" title="Update Status">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
-                                            <button class="btn btn-outline-danger" onclick="deleteLead(<?php echo $lead['id']; ?>)">
+                                            <button class="btn btn-outline-danger" onclick="deleteLead(<?php echo $lead['id']; ?>)" title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
@@ -365,7 +385,13 @@ $extraScripts = '<script>
                 if (data.success) {
                     document.getElementById("leadModalBody").innerHTML = data.html;
                     new bootstrap.Modal(document.getElementById("leadModal")).show();
+                } else {
+                    alert("Error loading lead details: " + data.message);
                 }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Error loading lead details");
             });
     }
     
@@ -378,7 +404,13 @@ $extraScripts = '<script>
                     document.getElementById("leadStatus").value = data.lead.status;
                     document.getElementById("leadNotes").value = data.lead.admin_notes || "";
                     new bootstrap.Modal(document.getElementById("statusModal")).show();
+                } else {
+                    alert("Error loading lead details: " + data.message);
                 }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Error loading lead details");
             });
     }
     
@@ -396,7 +428,8 @@ $extraScripts = '<script>
     }
     
     function exportLeads() {
-        window.location.href = "export_leads.php?" + new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(window.location.search);
+        window.location.href = "export_leads.php?" + params.toString();
     }
 </script>';
 
