@@ -25,17 +25,23 @@ $services = getAllServices();
 <section class="py-5 bg-white">
     <div class="container">
         <div class="row g-4">
-            <?php foreach ($services as $service): ?>
+            <?php 
+            $serviceIcons = [
+                'Swedish Massage' => 'bi-heart-pulse',
+                'Deep Tissue Massage' => 'bi-activity',
+                'Hot Stone Therapy' => 'bi-fire',
+                'Aromatherapy' => 'bi-flower1',
+                'Reflexology' => 'bi-hand-thumbs-up',
+                'Thai Massage' => 'bi-person-arms-up'
+            ];
+            
+            foreach ($services as $service): 
+                $icon = $serviceIcons[$service['name']] ?? 'bi-spa';
+            ?>
                 <div class="col-lg-4 col-md-6">
                     <div class="service-card-detailed">
                         <div class="service-icon-large">
-                            <?php if ($service['icon_image']): ?>
-                                <img src="<?php echo UPLOAD_URL . $service['icon_image']; ?>" 
-                                     alt="<?php echo htmlspecialchars($service['name']); ?>" 
-                                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%;">
-                            <?php else: ?>
-                                <i class="bi bi-spa"></i>
-                            <?php endif; ?>
+                            <i class="bi <?php echo $icon; ?>"></i>
                         </div>
                         <h4 class="service-title"><?php echo htmlspecialchars($service['name']); ?></h4>
                         <p class="service-description"><?php echo htmlspecialchars($service['description']); ?></p>
