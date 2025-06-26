@@ -124,33 +124,16 @@ $filteredBookings = $priceStats['bookings'] ?? 0;
     <div class="container">
         <h2 class="section-title display-5 fw-bold">Our Premium Services</h2>
         <div class="row g-4">
-            <?php 
-            $serviceIcons = [
-                'Swedish Massage' => 'bi-heart-pulse',
-                'Deep Tissue Massage' => 'bi-activity',
-                'Hot Stone Therapy' => 'bi-fire',
-                'Aromatherapy' => 'bi-flower1',
-                'Reflexology' => 'bi-hand-thumbs-up',
-                'Thai Massage' => 'bi-person-arms-up'
-            ];
-            
-            foreach (array_slice($services, 0, 6) as $service): 
-                $icon = $serviceIcons[$service['name']] ?? 'bi-spa';
-                
-                // Use service icon if available
-                if ($service['icon_type'] === 'bootstrap' && $service['icon_value']) {
-                    $icon = $service['icon_value'];
-                }
-            ?>
+            <?php foreach (array_slice($services, 0, 6) as $service): ?>
                 <div class="col-lg-4 col-md-6">
                     <div class="service-card slide-up">
                         <div class="service-icon">
-                            <?php if ($service['icon_type'] === 'upload' && $service['icon_image']): ?>
+                            <?php if ($service['icon_image']): ?>
                                 <img src="<?php echo UPLOAD_URL . $service['icon_image']; ?>" 
                                      alt="<?php echo htmlspecialchars($service['name']); ?>" 
-                                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
+                                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;">
                             <?php else: ?>
-                                <i class="bi <?php echo $icon; ?>"></i>
+                                <i class="bi bi-spa"></i>
                             <?php endif; ?>
                         </div>
                         <h5 class="fw-bold mb-3"><?php echo htmlspecialchars($service['name']); ?></h5>
