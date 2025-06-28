@@ -150,100 +150,100 @@ $services = getAllServices();
 
 <?php include 'includes/admin_header.php'; ?>
 
-<div class="admin-content">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold">Manage Therapists</h2>
-            <p class="text-muted mb-0">Add, edit, and manage therapist profiles</p>
-        </div>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#therapistModal">
-            <i class="bi bi-plus-lg me-2"></i>Add New Therapist
-        </button>
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Manage Therapists</h1>
+    <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#therapistModal">
+        <i class="bi bi-plus text-white-50"></i> Add New Therapist
+    </button>
+</div>
+
+<?php if ($message): ?>
+    <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
+        <i class="bi bi-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
+        <?php echo $message; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    
-    <?php if ($message): ?>
-        <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
-            <i class="bi bi-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
-            <?php echo $message; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-    
-    <div class="card">
-        <div class="card-body">
-            <?php if (empty($therapists)): ?>
-                <div class="text-center py-5">
-                    <i class="bi bi-person-plus display-4 text-muted"></i>
-                    <h5 class="text-muted mt-3">No therapists found</h5>
-                    <p class="text-muted">Click "Add New Therapist" to get started.</p>
-                </div>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
+<?php endif; ?>
+
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Therapists List</h6>
+    </div>
+    <div class="card-body">
+        <?php if (empty($therapists)): ?>
+            <div class="text-center py-5">
+                <i class="bi bi-person-plus display-4 text-gray-300"></i>
+                <h5 class="text-gray-500 mt-3">No therapists found</h5>
+                <p class="text-gray-400">Click "Add New Therapist" to get started.</p>
+            </div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Price/Session</th>
+                            <th>Services</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($therapists as $therapist): 
+                            $therapistServices = getTherapistServices($therapist['id']);
+                            $images = getTherapistImages($therapist['id']);
+                            $mainImage = !empty($images) ? UPLOAD_URL . $images[0]['image_path'] : 'https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg?auto=compress&cs=tinysrgb&w=100';
+                        ?>
                             <tr>
-                                <th>ID</th>
-                                <th>Image</th>
-                                <th>Name</th>
-                                <th>Price/Session</th>
-                                <th>Services</th>
-                                <th>Status</th>
-                                <th>Created</th>
-                                <th>Actions</th>
+                                <td><?php echo $therapist['id']; ?></td>
+                                <td>
+                                    <img src="<?php echo $mainImage; ?>" 
+                                         class="rounded" width="50" height="50" style="object-fit: cover;"
+                                         alt="<?php echo htmlspecialchars($therapist['name']); ?>">
+                                </td>
+                                <td>
+                                    <strong><?php echo htmlspecialchars($therapist['name']); ?></strong><br>
+                                    <small class="text-muted">
+                                        <?php echo $therapist['height'] ? 'H: ' . $therapist['height'] : ''; ?>
+                                        <?php echo $therapist['weight'] ? ' W: ' . $therapist['weight'] : ''; ?>
+                                    </small>
+                                </td>
+                                <td><?php echo formatPrice($therapist['price_per_session']); ?></td>
+                                <td>
+                                    <?php foreach (array_slice($therapistServices, 0, 2) as $service): ?>
+                                        <span class="badge badge-light me-1"><?php echo htmlspecialchars($service['name']); ?></span>
+                                    <?php endforeach; ?>
+                                    <?php if (count($therapistServices) > 2): ?>
+                                        <span class="badge badge-secondary">+<?php echo count($therapistServices) - 2; ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span class="badge badge-<?php echo $therapist['status'] === 'active' ? 'success' : 'secondary'; ?>">
+                                        <?php echo ucfirst($therapist['status']); ?>
+                                    </span>
+                                </td>
+                                <td><?php echo timeAgo($therapist['created_at']); ?></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="editTherapist(<?php echo $therapist['id']; ?>)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" onclick="deleteTherapist(<?php echo $therapist['id']; ?>, '<?php echo htmlspecialchars($therapist['name']); ?>')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($therapists as $therapist): 
-                                $therapistServices = getTherapistServices($therapist['id']);
-                                $images = getTherapistImages($therapist['id']);
-                                $mainImage = !empty($images) ? UPLOAD_URL . $images[0]['image_path'] : 'https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg?auto=compress&cs=tinysrgb&w=100';
-                            ?>
-                                <tr>
-                                    <td><?php echo $therapist['id']; ?></td>
-                                    <td>
-                                        <img src="<?php echo $mainImage; ?>" 
-                                             class="rounded" width="50" height="50" style="object-fit: cover;"
-                                             alt="<?php echo htmlspecialchars($therapist['name']); ?>">
-                                    </td>
-                                    <td>
-                                        <strong><?php echo htmlspecialchars($therapist['name']); ?></strong><br>
-                                        <small class="text-muted">
-                                            <?php echo $therapist['height'] ? 'H: ' . $therapist['height'] : ''; ?>
-                                            <?php echo $therapist['weight'] ? ' W: ' . $therapist['weight'] : ''; ?>
-                                        </small>
-                                    </td>
-                                    <td><?php echo formatPrice($therapist['price_per_session']); ?></td>
-                                    <td>
-                                        <?php foreach (array_slice($therapistServices, 0, 2) as $service): ?>
-                                            <span class="badge bg-light text-dark me-1"><?php echo htmlspecialchars($service['name']); ?></span>
-                                        <?php endforeach; ?>
-                                        <?php if (count($therapistServices) > 2): ?>
-                                            <span class="badge bg-secondary">+<?php echo count($therapistServices) - 2; ?></span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-<?php echo $therapist['status'] === 'active' ? 'success' : 'secondary'; ?>">
-                                            <?php echo ucfirst($therapist['status']); ?>
-                                        </span>
-                                    </td>
-                                    <td><?php echo timeAgo($therapist['created_at']); ?></td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary" onclick="editTherapist(<?php echo $therapist['id']; ?>)">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-outline-danger" onclick="deleteTherapist(<?php echo $therapist['id']; ?>, '<?php echo htmlspecialchars($therapist['name']); ?>')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
-        </div>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

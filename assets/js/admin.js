@@ -1,21 +1,77 @@
-// Admin Panel JavaScript
+// SBAdmin-style Admin Panel JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     // Sidebar toggle functionality
     const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('adminSidebar');
+    const sidebarToggleTop = document.getElementById('sidebarToggleTop');
+    const sidebar = document.getElementById('accordionSidebar');
     
-    if (sidebarToggle && sidebar) {
+    if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('show');
+            document.body.classList.toggle('sidebar-toggled');
+            sidebar.classList.toggle('toggled');
+            
+            if (sidebar.classList.contains('toggled')) {
+                sidebar.querySelectorAll('.collapse').forEach(collapse => {
+                    collapse.classList.remove('show');
+                });
+            }
+        });
+    }
+    
+    if (sidebarToggleTop) {
+        sidebarToggleTop.addEventListener('click', function() {
+            document.body.classList.toggle('sidebar-toggled');
+            sidebar.classList.toggle('toggled');
+            
+            if (sidebar.classList.contains('toggled')) {
+                sidebar.querySelectorAll('.collapse').forEach(collapse => {
+                    collapse.classList.remove('show');
+                });
+            }
+        });
+    }
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth < 768) {
+            if (!sidebar.contains(e.target) && !sidebarToggleTop.contains(e.target)) {
+                document.body.classList.remove('sidebar-toggled');
+                sidebar.classList.remove('toggled');
+            }
+        }
+    });
+    
+    // Prevent sidebar from auto-collapsing on window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth < 768) {
+            sidebar.querySelectorAll('.collapse').forEach(collapse => {
+                collapse.classList.remove('show');
+            });
+        }
+        
+        if (window.innerWidth < 480) {
+            document.body.classList.add('sidebar-toggled');
+            sidebar.classList.add('toggled');
+        }
+    });
+    
+    // Scroll to top functionality
+    const scrollToTop = document.querySelector('.scroll-to-top');
+    if (scrollToTop) {
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 100) {
+                scrollToTop.style.display = 'block';
+            } else {
+                scrollToTop.style.display = 'none';
+            }
         });
         
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(e) {
-            if (window.innerWidth <= 992) {
-                if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-                    sidebar.classList.remove('show');
-                }
-            }
+        scrollToTop.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         });
     }
     
@@ -30,7 +86,9 @@ document.addEventListener('DOMContentLoaded', function() {
     alerts.forEach(alert => {
         setTimeout(() => {
             const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
+            if (bsAlert) {
+                bsAlert.close();
+            }
         }, 5000);
     });
     
@@ -56,6 +114,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // DataTable initialization (if DataTables is loaded)
+    if (typeof $.fn.DataTable !== 'undefined') {
+        $('#dataTable').DataTable({
+            "pageLength": 25,
+            "responsive": true,
+            "order": [[ 0, "desc" ]],
+            "language": {
+                "search": "Search:",
+                "lengthMenu": "Show _MENU_ entries",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "paginate": {
+                    "first": "First",
+                    "last": "Last",
+                    "next": "Next",
+                    "previous": "Previous"
+                }
+            }
+        });
+    }
     
     // Auto-refresh for real-time updates (optional)
     if (document.querySelector('.auto-refresh')) {
@@ -111,25 +189,25 @@ function showLeadModal(lead) {
     modalBody.innerHTML = `
         <div class="row">
             <div class="col-md-6">
-                <h6 class="fw-bold">Customer Information</h6>
+                <h6 class="font-weight-bold">Customer Information</h6>
                 <p><strong>Name:</strong> ${lead.full_name}</p>
                 <p><strong>Email:</strong> ${lead.email}</p>
                 <p><strong>Phone:</strong> ${lead.phone}</p>
-                <p><strong>Type:</strong> <span class="badge bg-primary">${lead.type}</span></p>
+                <p><strong>Type:</strong> <span class="badge badge-primary">${lead.type}</span></p>
             </div>
             <div class="col-md-6">
-                <h6 class="fw-bold">Lead Details</h6>
-                <p><strong>Status:</strong> <span class="badge bg-warning">${lead.status}</span></p>
+                <h6 class="font-weight-bold">Lead Details</h6>
+                <p><strong>Status:</strong> <span class="badge badge-warning">${lead.status}</span></p>
                 <p><strong>Created:</strong> ${new Date(lead.created_at).toLocaleString()}</p>
                 <p><strong>Therapist:</strong> ${lead.therapist_name || 'N/A'}</p>
             </div>
             <div class="col-12 mt-3">
-                <h6 class="fw-bold">Message</h6>
+                <h6 class="font-weight-bold">Message</h6>
                 <p class="bg-light p-3 rounded">${lead.message || 'No message provided'}</p>
             </div>
             ${lead.admin_notes ? `
                 <div class="col-12 mt-3">
-                    <h6 class="fw-bold">Admin Notes</h6>
+                    <h6 class="font-weight-bold">Admin Notes</h6>
                     <p class="bg-warning bg-opacity-10 p-3 rounded">${lead.admin_notes}</p>
                 </div>
             ` : ''}
@@ -196,24 +274,6 @@ function exportData(type, params = {}) {
     const queryString = new URLSearchParams(params).toString();
     const url = `export_${type}.php${queryString ? '?' + queryString : ''}`;
     window.open(url, '_blank');
-}
-
-// Real-time notifications (if WebSocket is implemented)
-function initializeNotifications() {
-    // Placeholder for WebSocket connection
-    // This would connect to a WebSocket server for real-time updates
-}
-
-// Chart initialization (if charts are added)
-function initializeCharts() {
-    // Placeholder for chart initialization
-    // This would initialize Chart.js or similar library
-}
-
-// Data table enhancements
-function initializeDataTables() {
-    // Placeholder for DataTables initialization
-    // This would add sorting, pagination, and search to tables
 }
 
 // File upload handling
@@ -331,3 +391,12 @@ function checkSession() {
 
 // Check session every 5 minutes
 setInterval(checkSession, 5 * 60 * 1000);
+
+// Custom form control styles
+document.addEventListener('DOMContentLoaded', function() {
+    // Add custom styling to form controls
+    const formControls = document.querySelectorAll('.form-control');
+    formControls.forEach(control => {
+        control.classList.add('form-control-user');
+    });
+});

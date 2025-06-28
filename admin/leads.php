@@ -118,209 +118,260 @@ foreach ($statsResults as $stat) {
 
 <?php include 'includes/admin_header.php'; ?>
 
-<div class="admin-content">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold">Lead Management</h2>
-            <p class="text-muted mb-0">Track and manage all customer inquiries and bookings</p>
-        </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary" onclick="exportLeads()">
-                <i class="bi bi-download me-2"></i>Export
-            </button>
-        </div>
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Lead Management</h1>
+    <div class="d-flex gap-2">
+        <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="exportLeads()">
+            <i class="bi bi-download text-white-50"></i> Export
+        </button>
     </div>
-    
-    <?php if ($message): ?>
-        <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
-            <i class="bi bi-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
-            <?php echo $message; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-    
-    <!-- Statistics Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card">
-                <div class="stat-number"><?php echo $stats['total']; ?></div>
-                <div class="stat-label">Total Leads</div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card stat-new">
-                <div class="stat-number"><?php echo $stats['new']; ?></div>
-                <div class="stat-label">New</div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card stat-follow-up">
-                <div class="stat-number"><?php echo $stats['follow_up']; ?></div>
-                <div class="stat-label">Follow-up</div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card stat-converted">
-                <div class="stat-number"><?php echo $stats['converted']; ?></div>
-                <div class="stat-label">Converted</div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card stat-closed">
-                <div class="stat-number"><?php echo $stats['closed']; ?></div>
-                <div class="stat-label">Closed</div>
-            </div>
-        </div>
+</div>
+
+<?php if ($message): ?>
+    <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
+        <i class="bi bi-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
+        <?php echo $message; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    
-    <!-- Enhanced Filters -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-2">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" name="status">
-                        <option value="all" <?php echo $statusFilter === 'all' ? 'selected' : ''; ?>>All Status</option>
-                        <option value="new" <?php echo $statusFilter === 'new' ? 'selected' : ''; ?>>New</option>
-                        <option value="follow_up" <?php echo $statusFilter === 'follow_up' ? 'selected' : ''; ?>>Follow-up</option>
-                        <option value="converted" <?php echo $statusFilter === 'converted' ? 'selected' : ''; ?>>Converted</option>
-                        <option value="closed" <?php echo $statusFilter === 'closed' ? 'selected' : ''; ?>>Closed</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Type</label>
-                    <select class="form-select" name="type">
-                        <option value="all" <?php echo $typeFilter === 'all' ? 'selected' : ''; ?>>All Types</option>
-                        <option value="inquiry" <?php echo $typeFilter === 'inquiry' ? 'selected' : ''; ?>>Inquiry</option>
-                        <option value="booking" <?php echo $typeFilter === 'booking' ? 'selected' : ''; ?>>Booking</option>
-                        <option value="whatsapp" <?php echo $typeFilter === 'whatsapp' ? 'selected' : ''; ?>>WhatsApp</option>
-                        <option value="contact" <?php echo $typeFilter === 'contact' ? 'selected' : ''; ?>>Contact Form</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Single Date</label>
-                    <input type="date" class="form-control" name="date" value="<?php echo $dateFilter; ?>">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">From Date</label>
-                    <input type="date" class="form-control" name="date_from" value="<?php echo $dateFrom; ?>">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">To Date</label>
-                    <input type="date" class="form-control" name="date_to" value="<?php echo $dateTo; ?>">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">&nbsp;</label>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-funnel me-2"></i>Filter
-                        </button>
-                        <a href="leads.php" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle me-2"></i>Clear
-                        </a>
+<?php endif; ?>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-xl-2 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Leads</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['total']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-person-lines-fill fa-2x text-gray-300"></i>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
-    
-    <!-- Responsive Leads Table -->
-    <div class="card">
-        <div class="card-body">
-            <?php if (empty($leads)): ?>
-                <div class="text-center py-5">
-                    <i class="bi bi-person-lines-fill display-4 text-muted"></i>
-                    <h5 class="text-muted mt-3">No leads found</h5>
-                    <p class="text-muted">Leads will appear here when customers submit inquiries.</p>
+
+    <div class="col-xl-2 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">New</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['new']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-exclamation-circle fa-2x text-gray-300"></i>
+                    </div>
                 </div>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Customer</th>
-                                <th>Type</th>
-                                <th>Therapist</th>
-                                <th class="d-none d-md-table-cell">Message</th>
-                                <th>Status</th>
-                                <th class="d-none d-lg-table-cell">Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($leads as $lead): ?>
-                                <tr>
-                                    <td>
-                                        <span class="badge bg-light text-dark">#<?php echo $lead['id']; ?></span>
-                                    </td>
-                                    <td>
-                                        <div>
-                                            <strong><?php echo htmlspecialchars($lead['full_name']); ?></strong><br>
-                                            <small class="text-muted">
-                                                <i class="bi bi-envelope me-1"></i><?php echo htmlspecialchars($lead['email']); ?><br>
-                                                <i class="bi bi-telephone me-1"></i><?php echo htmlspecialchars($lead['phone']); ?>
-                                            </small>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-<?php 
-                                            echo match($lead['type']) {
-                                                'booking' => 'primary',
-                                                'inquiry' => 'info',
-                                                'whatsapp' => 'success',
-                                                'contact' => 'warning',
-                                                default => 'secondary'
-                                            };
-                                        ?>">
-                                            <?php echo ucfirst($lead['type']); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <?php echo htmlspecialchars($lead['therapist_name'] ?? 'N/A'); ?>
-                                    </td>
-                                    <td class="d-none d-md-table-cell">
-                                        <div class="message-preview">
-                                            <?php echo htmlspecialchars(substr($lead['message'] ?? '', 0, 50)); ?>
-                                            <?php if (strlen($lead['message'] ?? '') > 50) echo '...'; ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-<?php 
-                                            echo match($lead['status']) {
-                                                'new' => 'danger',
-                                                'follow_up' => 'warning',
-                                                'converted' => 'success',
-                                                'closed' => 'secondary',
-                                                default => 'secondary'
-                                            };
-                                        ?>">
-                                            <?php echo ucfirst(str_replace('_', ' ', $lead['status'])); ?>
-                                        </span>
-                                    </td>
-                                    <td class="d-none d-lg-table-cell">
-                                        <small class="text-muted"><?php echo timeAgo($lead['created_at']); ?></small>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary" onclick="viewLead(<?php echo $lead['id']; ?>)" title="View Details">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                            <button class="btn btn-outline-success" onclick="updateLeadStatus(<?php echo $lead['id']; ?>)" title="Update Status">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-outline-danger" onclick="deleteLead(<?php echo $lead['id']; ?>)" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
+            </div>
         </div>
+    </div>
+
+    <div class="col-xl-2 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Follow-up</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['follow_up']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Converted</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['converted']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-6 mb-4">
+        <div class="card border-left-secondary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Closed</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['closed']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-x-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Filters -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Filter Leads</h6>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                    <option value="all" <?php echo $statusFilter === 'all' ? 'selected' : ''; ?>>All Status</option>
+                    <option value="new" <?php echo $statusFilter === 'new' ? 'selected' : ''; ?>>New</option>
+                    <option value="follow_up" <?php echo $statusFilter === 'follow_up' ? 'selected' : ''; ?>>Follow-up</option>
+                    <option value="converted" <?php echo $statusFilter === 'converted' ? 'selected' : ''; ?>>Converted</option>
+                    <option value="closed" <?php echo $statusFilter === 'closed' ? 'selected' : ''; ?>>Closed</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Type</label>
+                <select class="form-select" name="type">
+                    <option value="all" <?php echo $typeFilter === 'all' ? 'selected' : ''; ?>>All Types</option>
+                    <option value="inquiry" <?php echo $typeFilter === 'inquiry' ? 'selected' : ''; ?>>Inquiry</option>
+                    <option value="booking" <?php echo $typeFilter === 'booking' ? 'selected' : ''; ?>>Booking</option>
+                    <option value="whatsapp" <?php echo $typeFilter === 'whatsapp' ? 'selected' : ''; ?>>WhatsApp</option>
+                    <option value="contact" <?php echo $typeFilter === 'contact' ? 'selected' : ''; ?>>Contact Form</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Single Date</label>
+                <input type="date" class="form-control" name="date" value="<?php echo $dateFilter; ?>">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">From Date</label>
+                <input type="date" class="form-control" name="date_from" value="<?php echo $dateFrom; ?>">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">To Date</label>
+                <input type="date" class="form-control" name="date_to" value="<?php echo $dateTo; ?>">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel me-2"></i>Filter
+                    </button>
+                    <a href="leads.php" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Responsive Leads Table -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Leads List</h6>
+    </div>
+    <div class="card-body">
+        <?php if (empty($leads)): ?>
+            <div class="text-center py-5">
+                <i class="bi bi-person-lines-fill display-4 text-gray-300"></i>
+                <h5 class="text-gray-500 mt-3">No leads found</h5>
+                <p class="text-gray-400">Leads will appear here when customers submit inquiries.</p>
+            </div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Type</th>
+                            <th>Therapist</th>
+                            <th class="d-none d-md-table-cell">Message</th>
+                            <th>Status</th>
+                            <th class="d-none d-lg-table-cell">Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($leads as $lead): ?>
+                            <tr>
+                                <td>
+                                    <span class="badge badge-light">#<?php echo $lead['id']; ?></span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong><?php echo htmlspecialchars($lead['full_name']); ?></strong><br>
+                                        <small class="text-muted">
+                                            <i class="bi bi-envelope me-1"></i><?php echo htmlspecialchars($lead['email']); ?><br>
+                                            <i class="bi bi-telephone me-1"></i><?php echo htmlspecialchars($lead['phone']); ?>
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-<?php 
+                                        echo match($lead['type']) {
+                                            'booking' => 'primary',
+                                            'inquiry' => 'info',
+                                            'whatsapp' => 'success',
+                                            'contact' => 'warning',
+                                            default => 'secondary'
+                                        };
+                                    ?>">
+                                        <?php echo ucfirst($lead['type']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <?php echo htmlspecialchars($lead['therapist_name'] ?? 'N/A'); ?>
+                                </td>
+                                <td class="d-none d-md-table-cell">
+                                    <div class="message-preview">
+                                        <?php echo htmlspecialchars(substr($lead['message'] ?? '', 0, 50)); ?>
+                                        <?php if (strlen($lead['message'] ?? '') > 50) echo '...'; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-<?php 
+                                        echo match($lead['status']) {
+                                            'new' => 'danger',
+                                            'follow_up' => 'warning',
+                                            'converted' => 'success',
+                                            'closed' => 'secondary',
+                                            default => 'secondary'
+                                        };
+                                    ?>">
+                                        <?php echo ucfirst(str_replace('_', ' ', $lead['status'])); ?>
+                                    </span>
+                                </td>
+                                <td class="d-none d-lg-table-cell">
+                                    <small class="text-muted"><?php echo timeAgo($lead['created_at']); ?></small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="viewLead(<?php echo $lead['id']; ?>)" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-success" onclick="updateLeadStatus(<?php echo $lead['id']; ?>)" title="Update Status">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" onclick="deleteLead(<?php echo $lead['id']; ?>)" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

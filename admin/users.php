@@ -71,134 +71,182 @@ foreach ($users as $user) {
 
 <?php include 'includes/admin_header.php'; ?>
 
-<div class="admin-content">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold">User Management</h2>
-            <p class="text-muted mb-0">Manage all registered users and their access</p>
-        </div>
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">User Management</h1>
+</div>
+
+<?php if ($message): ?>
+    <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
+        <i class="bi bi-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
+        <?php echo $message; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    
-    <?php if ($message): ?>
-        <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
-            <i class="bi bi-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
-            <?php echo $message; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-    
-    <!-- Statistics Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card">
-                <div class="stat-number"><?php echo $stats['total']; ?></div>
-                <div class="stat-label">Total Users</div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card stat-converted">
-                <div class="stat-number"><?php echo $stats['active']; ?></div>
-                <div class="stat-label">Active</div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card stat-closed">
-                <div class="stat-number"><?php echo $stats['inactive']; ?></div>
-                <div class="stat-label">Inactive</div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card stat-new">
-                <div class="stat-number"><?php echo $stats['admins']; ?></div>
-                <div class="stat-label">Admins</div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card stat-follow-up">
-                <div class="stat-number"><?php echo $stats['regular_users']; ?></div>
-                <div class="stat-label">Regular Users</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Users Table -->
-    <div class="card">
-        <div class="card-body">
-            <?php if (empty($users)): ?>
-                <div class="text-center py-5">
-                    <i class="bi bi-people display-4 text-muted"></i>
-                    <h5 class="text-muted mt-3">No users found</h5>
-                    <p class="text-muted">Users will appear here when they register.</p>
+<?php endif; ?>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-xl-2 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Users</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['total']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people fa-2x text-gray-300"></i>
+                    </div>
                 </div>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['active']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-6 mb-4">
+        <div class="card border-left-secondary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Inactive</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['inactive']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-x-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Admins</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['admins']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-shield-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Regular Users</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['regular_users']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-person fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Users List</h6>
+    </div>
+    <div class="card-body">
+        <?php if (empty($users)): ?>
+            <div class="text-center py-5">
+                <i class="bi bi-people display-4 text-gray-300"></i>
+                <h5 class="text-gray-500 mt-3">No users found</h5>
+                <p class="text-gray-400">Users will appear here when they register.</p>
+            </div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User Details</th>
+                            <th>Contact</th>
+                            <th>Location</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($users as $user): ?>
                             <tr>
-                                <th>ID</th>
-                                <th>User Details</th>
-                                <th>Contact</th>
-                                <th>Location</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Joined</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($users as $user): ?>
-                                <tr>
-                                    <td>
-                                        <span class="badge bg-light text-dark">#<?php echo $user['id']; ?></span>
-                                    </td>
-                                    <td>
-                                        <div>
-                                            <strong><?php echo htmlspecialchars($user['name']); ?></strong><br>
-                                            <small class="text-muted"><?php echo htmlspecialchars($user['email']); ?></small>
+                                <td>
+                                    <span class="badge badge-light">#<?php echo $user['id']; ?></span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong><?php echo htmlspecialchars($user['name']); ?></strong><br>
+                                        <small class="text-muted"><?php echo htmlspecialchars($user['email']); ?></small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        <i class="bi bi-telephone me-1"></i><?php echo htmlspecialchars($user['phone'] ?? 'N/A'); ?>
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="text-muted"><?php echo htmlspecialchars($user['city'] ?? 'N/A'); ?></span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-<?php echo $user['role'] === 'admin' ? 'danger' : 'primary'; ?>">
+                                        <?php echo ucfirst($user['role']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-<?php echo $user['status'] === 'active' ? 'success' : 'secondary'; ?>">
+                                        <?php echo ucfirst($user['status']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted"><?php echo timeAgo($user['created_at']); ?></small>
+                                </td>
+                                <td>
+                                    <?php if ($user['role'] !== 'admin'): ?>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" onclick="updateUserStatus(<?php echo $user['id']; ?>, '<?php echo $user['status']; ?>')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger" onclick="deleteUser(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </div>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">
-                                            <i class="bi bi-telephone me-1"></i><?php echo htmlspecialchars($user['phone'] ?? 'N/A'); ?>
-                                        </small>
-                                    </td>
-                                    <td>
-                                        <span class="text-muted"><?php echo htmlspecialchars($user['city'] ?? 'N/A'); ?></span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-<?php echo $user['role'] === 'admin' ? 'danger' : 'primary'; ?>">
-                                            <?php echo ucfirst($user['role']); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-<?php echo $user['status'] === 'active' ? 'success' : 'secondary'; ?>">
-                                            <?php echo ucfirst($user['status']); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted"><?php echo timeAgo($user['created_at']); ?></small>
-                                    </td>
-                                    <td>
-                                        <?php if ($user['role'] !== 'admin'): ?>
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" onclick="updateUserStatus(<?php echo $user['id']; ?>, '<?php echo $user['status']; ?>')">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-                                                <button class="btn btn-outline-danger" onclick="deleteUser(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        <?php else: ?>
-                                            <span class="text-muted">Protected</span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
-        </div>
+                                    <?php else: ?>
+                                        <span class="text-muted">Protected</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

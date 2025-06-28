@@ -103,94 +103,94 @@ $services = getAllServicesWithIcons();
 
 <?php include 'includes/admin_header.php'; ?>
 
-<div class="admin-content">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold">Manage Services</h2>
-            <p class="text-muted mb-0">Add, edit, and manage spa services with icons</p>
-        </div>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceModal">
-            <i class="bi bi-plus-lg me-2"></i>Add New Service
-        </button>
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Manage Services</h1>
+    <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#serviceModal">
+        <i class="bi bi-plus text-white-50"></i> Add New Service
+    </button>
+</div>
+
+<?php if ($message): ?>
+    <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
+        <i class="bi bi-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
+        <?php echo $message; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    
-    <?php if ($message): ?>
-        <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
-            <i class="bi bi-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
-            <?php echo $message; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-    
-    <div class="card">
-        <div class="card-body">
-            <?php if (empty($services)): ?>
-                <div class="text-center py-5">
-                    <i class="bi bi-gear display-4 text-muted"></i>
-                    <h5 class="text-muted mt-3">No services found</h5>
-                    <p class="text-muted">Click "Add New Service" to get started.</p>
-                </div>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
+<?php endif; ?>
+
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Services List</h6>
+    </div>
+    <div class="card-body">
+        <?php if (empty($services)): ?>
+            <div class="text-center py-5">
+                <i class="bi bi-gear display-4 text-gray-300"></i>
+                <h5 class="text-gray-500 mt-3">No services found</h5>
+                <p class="text-gray-400">Click "Add New Service" to get started.</p>
+            </div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Icon</th>
+                            <th>Service Name</th>
+                            <th>Description</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($services as $service): ?>
                             <tr>
-                                <th>Icon</th>
-                                <th>Service Name</th>
-                                <th>Description</th>
-                                <th>Created</th>
-                                <th>Actions</th>
+                                <td>
+                                    <div class="service-icon-preview">
+                                        <?php if ($service['icon_type'] === 'upload' && $service['icon_image']): ?>
+                                            <img src="<?php echo UPLOAD_URL . $service['icon_image']; ?>" 
+                                                 alt="<?php echo htmlspecialchars($service['name']); ?>" 
+                                                 style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px;">
+                                        <?php elseif ($service['icon_type'] === 'bootstrap' && $service['icon_value']): ?>
+                                            <div class="d-flex align-items-center justify-content-center bg-primary text-white rounded" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="bi <?php echo htmlspecialchars($service['icon_value']); ?>"></i>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="d-flex align-items-center justify-content-center bg-secondary text-white rounded" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="bi bi-gear"></i>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong><?php echo htmlspecialchars($service['name']); ?></strong>
+                                </td>
+                                <td>
+                                    <span class="text-muted"><?php echo htmlspecialchars(substr($service['description'], 0, 100)); ?>
+                                    <?php if (strlen($service['description']) > 100) echo '...'; ?></span>
+                                </td>
+                                <td>
+                                    <small class="text-muted"><?php echo timeAgo($service['created_at']); ?></small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="editService(<?php echo $service['id']; ?>)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" onclick="deleteService(<?php echo $service['id']; ?>, '<?php echo htmlspecialchars($service['name']); ?>')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($services as $service): ?>
-                                <tr>
-                                    <td>
-                                        <div class="service-icon-preview">
-                                            <?php if ($service['icon_type'] === 'upload' && $service['icon_image']): ?>
-                                                <img src="<?php echo UPLOAD_URL . $service['icon_image']; ?>" 
-                                                     alt="<?php echo htmlspecialchars($service['name']); ?>" 
-                                                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px;">
-                                            <?php elseif ($service['icon_type'] === 'bootstrap' && $service['icon_value']): ?>
-                                                <div class="d-flex align-items-center justify-content-center bg-primary text-white rounded" 
-                                                     style="width: 40px; height: 40px;">
-                                                    <i class="bi <?php echo htmlspecialchars($service['icon_value']); ?>"></i>
-                                                </div>
-                                            <?php else: ?>
-                                                <div class="d-flex align-items-center justify-content-center bg-secondary text-white rounded" 
-                                                     style="width: 40px; height: 40px;">
-                                                    <i class="bi bi-gear"></i>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <strong><?php echo htmlspecialchars($service['name']); ?></strong>
-                                    </td>
-                                    <td>
-                                        <span class="text-muted"><?php echo htmlspecialchars(substr($service['description'], 0, 100)); ?>
-                                        <?php if (strlen($service['description']) > 100) echo '...'; ?></span>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted"><?php echo timeAgo($service['created_at']); ?></small>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary" onclick="editService(<?php echo $service['id']; ?>)">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-outline-danger" onclick="deleteService(<?php echo $service['id']; ?>, '<?php echo htmlspecialchars($service['name']); ?>')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
-        </div>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -198,9 +198,9 @@ $services = getAllServicesWithIcons();
 <div class="modal fade" id="serviceModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-gradient-primary text-white">
+            <div class="modal-header">
                 <h5 class="modal-title" id="serviceModalTitle">Add New Service</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="serviceForm" method="POST" enctype="multipart/form-data">
                 <div class="modal-body">
@@ -208,17 +208,17 @@ $services = getAllServicesWithIcons();
                     <input type="hidden" name="service_id" id="serviceId">
                     
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Service Name *</label>
+                        <label class="form-label font-weight-bold">Service Name *</label>
                         <input type="text" class="form-control" name="name" id="serviceName" required>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Description</label>
+                        <label class="form-label font-weight-bold">Description</label>
                         <textarea class="form-control" name="description" id="serviceDescription" rows="4" placeholder="Describe the service..."></textarea>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Icon Type</label>
+                        <label class="form-label font-weight-bold">Icon Type</label>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-check">
@@ -240,7 +240,7 @@ $services = getAllServicesWithIcons();
                     </div>
                     
                     <div class="mb-3" id="bootstrapIconSection">
-                        <label class="form-label fw-bold">Bootstrap Icon Class</label>
+                        <label class="form-label font-weight-bold">Bootstrap Icon Class</label>
                         <select class="form-control" name="icon_value" id="serviceIcon">
                             <option value="">Select an icon</option>
                             <option value="bi-heart-pulse">Heart Pulse (bi-heart-pulse)</option>
@@ -260,13 +260,13 @@ $services = getAllServicesWithIcons();
                     </div>
                     
                     <div class="mb-3" id="uploadIconSection" style="display: none;">
-                        <label class="form-label fw-bold">Upload Icon Image</label>
+                        <label class="form-label font-weight-bold">Upload Icon Image</label>
                         <input type="file" class="form-control" name="icon_image" accept="image/*">
                         <small class="form-text text-muted">Upload a custom icon image (JPG, PNG, WebP)</small>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Icon Preview</label>
+                        <label class="form-label font-weight-bold">Icon Preview</label>
                         <div id="iconPreview" class="d-flex align-items-center justify-content-center bg-light rounded" style="width: 60px; height: 60px;">
                             <i class="bi bi-gear text-muted"></i>
                         </div>
@@ -287,9 +287,9 @@ $services = getAllServicesWithIcons();
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+            <div class="modal-header">
                 <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="text-center">
