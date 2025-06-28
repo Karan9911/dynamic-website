@@ -7,9 +7,6 @@ requireAdminLogin();
 
 $pageTitle = 'Admin Dashboard';
 
-// Get filter parameters
-$revenueFilter = $_GET['revenue_filter'] ?? 'monthly';
-
 // Get statistics
 $db = getDB();
 
@@ -22,8 +19,8 @@ try {
         'total_leads' => 0,
         'new_leads' => 0,
         'total_users' => 0,
-        'revenue_filtered' => 0,
-        'bookings_filtered' => 0
+        'total_revenue' => 0,
+        'monthly_bookings' => 0
     ];
     
     // Get therapist counts
@@ -72,30 +69,28 @@ try {
         $stats['total_users'] = $result['count'];
     }
     
-    // Get filtered revenue and bookings
-    $dateCondition = '';
-    switch ($revenueFilter) {
-        case 'daily':
-            $dateCondition = "DATE(created_at) = CURDATE()";
-            break;
-        case 'monthly':
-            $dateCondition = "MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())";
-            break;
-        case 'yearly':
-            $dateCondition = "YEAR(created_at) = YEAR(CURRENT_DATE())";
-            break;
-    }
-    
+    // Get total revenue
     $stmt = $db->prepare("
         SELECT SUM(total_amount) as revenue, COUNT(*) as bookings 
         FROM bookings 
-        WHERE $dateCondition 
+        WHERE status IN ('confirmed', 'completed')
+    ");
+    if ($stmt->execute()) {
+        $result = $stmt->fetch();
+        $stats['total_revenue'] = $result['revenue'] ?? 0;
+    }
+    
+    // Get monthly bookings
+    $stmt = $db->prepare("
+        SELECT COUNT(*) as bookings 
+        FROM bookings 
+        WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) 
+        AND YEAR(created_at) = YEAR(CURRENT_DATE())
         AND status IN ('confirmed', 'completed')
     ");
     if ($stmt->execute()) {
         $result = $stmt->fetch();
-        $stats['revenue_filtered'] = $result['revenue'] ?? 0;
-        $stats['bookings_filtered'] = $result['bookings'] ?? 0;
+        $stats['monthly_bookings'] = $result['bookings'] ?? 0;
     }
     
     // Get recent bookings
@@ -129,8 +124,8 @@ try {
         'total_leads' => 0,
         'new_leads' => 0,
         'total_users' => 0,
-        'revenue_filtered' => 0,
-        'bookings_filtered' => 0
+        'total_revenue' => 0,
+        'monthly_bookings' => 0
     ];
     $recent_bookings = [];
     $recent_leads = [];
@@ -139,238 +134,198 @@ try {
 
 <?php include 'includes/admin_header.php'; ?>
 
-<div class="admin-content">
-    <!-- Welcome Section -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-1">Welcome back, <?php echo htmlspecialchars($_SESSION['admin_username']); ?>!</h2>
-            <p class="text-muted mb-0">Here's what's happening with your spa today.</p>
-        </div>
-        <div class="text-end">
-            <small class="text-muted">
-                <i class="bi bi-calendar me-1"></i>
-                <?php echo date('l, F j, Y'); ?>
-            </small>
-        </div>
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+    <div class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+        <i class="bi bi-calendar text-white-50"></i> <?php echo date('l, F j, Y'); ?>
     </div>
-    
-    <!-- Revenue Filter -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h5 class="mb-0">Revenue Analytics</h5>
-                    <small class="text-muted">Filter revenue and booking data</small>
-                </div>
-                <div class="col-md-6">
-                    <form method="GET" class="d-flex gap-2">
-                        <select name="revenue_filter" class="form-select" onchange="this.form.submit()">
-                            <option value="daily" <?php echo $revenueFilter === 'daily' ? 'selected' : ''; ?>>Today</option>
-                            <option value="monthly" <?php echo $revenueFilter === 'monthly' ? 'selected' : ''; ?>>This Month</option>
-                            <option value="yearly" <?php echo $revenueFilter === 'yearly' ? 'selected' : ''; ?>>This Year</option>
-                        </select>
-                    </form>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+    <!-- Total Therapists Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Therapists</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['total_therapists']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people fa-2x text-gray-300"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Statistics Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-number text-primary"><?php echo $stats['total_therapists']; ?>+</div>
-                        <div class="stat-label">Total Therapists</div>
+
+    <!-- Monthly Bookings Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Monthly Bookings</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['monthly_bookings']; ?></div>
                     </div>
-                    <i class="bi bi-people display-4 text-primary opacity-25"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6">
-            <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-number text-success"><?php echo $stats['bookings_filtered']; ?></div>
-                        <div class="stat-label"><?php echo ucfirst($revenueFilter); ?> Bookings</div>
+                    <div class="col-auto">
+                        <i class="bi bi-calendar-check fa-2x text-gray-300"></i>
                     </div>
-                    <i class="bi bi-calendar-check display-4 text-success opacity-25"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6">
-            <div class="stat-card stat-new">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-number text-warning"><?php echo $stats['new_leads']; ?></div>
-                        <div class="stat-label">New Leads</div>
-                    </div>
-                    <i class="bi bi-person-lines-fill display-4 text-warning opacity-25"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6">
-            <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-number text-info"><?php echo formatPrice($stats['revenue_filtered']); ?></div>
-                        <div class="stat-label"><?php echo ucfirst($revenueFilter); ?> Revenue</div>
-                    </div>
-                    <i class="bi bi-currency-rupee display-4 text-info opacity-25"></i>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Quick Actions -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <a href="therapists.php" class="quick-action-card">
-                <i class="bi bi-person-plus"></i>
-                <span>Add Therapist</span>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <a href="bookings.php" class="quick-action-card">
-                <i class="bi bi-calendar-check"></i>
-                <span>View Bookings</span>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <a href="leads.php" class="quick-action-card">
-                <i class="bi bi-person-lines-fill"></i>
-                <span>Manage Leads</span>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <a href="services.php" class="quick-action-card">
-                <i class="bi bi-gear"></i>
-                <span>Manage Services</span>
-            </a>
+
+    <!-- New Leads Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">New Leads</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['new_leads']; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-person-lines-fill fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    
-    <div class="row g-4">
-        <!-- Recent Bookings -->
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-clock-history me-2"></i>Recent Bookings
-                    </h5>
-                    <a href="bookings.php" class="btn btn-primary btn-sm">
-                        <i class="bi bi-eye me-1"></i>View All
-                    </a>
+
+    <!-- Total Revenue Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Revenue</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo formatPrice($stats['total_revenue']); ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-rupee fa-2x text-gray-300"></i>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <?php if (empty($recent_bookings)): ?>
-                        <div class="text-center py-4">
-                            <i class="bi bi-calendar-x display-4 text-muted"></i>
-                            <h6 class="text-muted mt-3">No bookings found</h6>
-                            <p class="text-muted">Bookings will appear here once customers start making appointments.</p>
-                        </div>
-                    <?php else: ?>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+    <!-- Recent Bookings -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Bookings</h6>
+                <a href="bookings.php" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                    <i class="bi bi-eye text-white-50"></i> View All
+                </a>
+            </div>
+            <div class="card-body">
+                <?php if (empty($recent_bookings)): ?>
+                    <div class="text-center py-4">
+                        <i class="bi bi-calendar-x display-4 text-gray-300"></i>
+                        <h6 class="text-gray-500 mt-3">No bookings found</h6>
+                        <p class="text-gray-400">Bookings will appear here once customers start making appointments.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Therapist</th>
+                                    <th>Date & Time</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($recent_bookings as $booking): ?>
                                     <tr>
-                                        <th>Customer</th>
-                                        <th>Therapist</th>
-                                        <th>Date & Time</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
+                                        <td>
+                                            <div>
+                                                <strong><?php echo htmlspecialchars($booking['full_name']); ?></strong><br>
+                                                <small class="text-muted"><?php echo htmlspecialchars($booking['email']); ?></small>
+                                            </div>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($booking['therapist_name'] ?? 'N/A'); ?></td>
+                                        <td>
+                                            <div>
+                                                <?php echo date('M j, Y', strtotime($booking['booking_date'])); ?><br>
+                                                <small class="text-muted"><?php echo date('g:i A', strtotime($booking['booking_time'])); ?></small>
+                                            </div>
+                                        </td>
+                                        <td><span class="font-weight-bold text-success"><?php echo formatPrice($booking['total_amount']); ?></span></td>
+                                        <td>
+                                            <span class="badge badge-<?php 
+                                                echo match($booking['status']) {
+                                                    'confirmed' => 'success',
+                                                    'pending' => 'warning',
+                                                    'cancelled' => 'danger',
+                                                    'completed' => 'info',
+                                                    default => 'secondary'
+                                                };
+                                            ?>">
+                                                <?php echo ucfirst($booking['status']); ?>
+                                            </span>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($recent_bookings as $booking): ?>
-                                        <tr>
-                                            <td>
-                                                <div>
-                                                    <strong><?php echo htmlspecialchars($booking['full_name']); ?></strong><br>
-                                                    <small class="text-muted"><?php echo htmlspecialchars($booking['email']); ?></small>
-                                                </div>
-                                            </td>
-                                            <td><?php echo htmlspecialchars($booking['therapist_name'] ?? 'N/A'); ?></td>
-                                            <td>
-                                                <div>
-                                                    <?php echo date('M j, Y', strtotime($booking['booking_date'])); ?><br>
-                                                    <small class="text-muted"><?php echo date('g:i A', strtotime($booking['booking_time'])); ?></small>
-                                                </div>
-                                            </td>
-                                            <td><span class="fw-bold text-success"><?php echo formatPrice($booking['total_amount']); ?></span></td>
-                                            <td>
-                                                <span class="badge bg-<?php 
-                                                    echo match($booking['status']) {
-                                                        'confirmed' => 'success',
-                                                        'pending' => 'warning',
-                                                        'cancelled' => 'danger',
-                                                        'completed' => 'info',
-                                                        default => 'secondary'
-                                                    };
-                                                ?>">
-                                                    <?php echo ucfirst($booking['status']); ?>
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
-        
-        <!-- Recent Leads -->
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-person-lines-fill me-2"></i>Recent Leads
-                    </h5>
-                    <a href="leads.php" class="btn btn-primary btn-sm">
-                        <i class="bi bi-eye me-1"></i>View All
-                    </a>
-                </div>
-                <div class="card-body">
-                    <?php if (empty($recent_leads)): ?>
-                        <div class="text-center py-4">
-                            <i class="bi bi-person-x display-4 text-muted"></i>
-                            <h6 class="text-muted mt-3">No leads found</h6>
-                            <p class="text-muted">Leads will appear here when customers submit inquiries.</p>
-                        </div>
-                    <?php else: ?>
-                        <div class="lead-list">
-                            <?php foreach ($recent_leads as $lead): ?>
-                                <div class="lead-item">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1"><?php echo htmlspecialchars($lead['full_name']); ?></h6>
-                                            <small class="text-muted"><?php echo htmlspecialchars($lead['email']); ?></small>
-                                        </div>
-                                        <span class="badge bg-<?php 
-                                            echo match($lead['status']) {
-                                                'new' => 'danger',
-                                                'follow_up' => 'warning',
-                                                'converted' => 'success',
-                                                'closed' => 'secondary',
-                                                default => 'secondary'
-                                            };
-                                        ?>">
-                                            <?php echo ucfirst(str_replace('_', ' ', $lead['status'])); ?>
-                                        </span>
+    </div>
+
+    <!-- Recent Leads -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Leads</h6>
+                <a href="leads.php" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                    <i class="bi bi-eye text-white-50"></i> View All
+                </a>
+            </div>
+            <div class="card-body">
+                <?php if (empty($recent_leads)): ?>
+                    <div class="text-center py-4">
+                        <i class="bi bi-person-x display-4 text-gray-300"></i>
+                        <h6 class="text-gray-500 mt-3">No leads found</h6>
+                        <p class="text-gray-400">Leads will appear here when customers submit inquiries.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="lead-list">
+                        <?php foreach ($recent_leads as $lead): ?>
+                            <div class="lead-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1"><?php echo htmlspecialchars($lead['full_name']); ?></h6>
+                                        <small class="text-muted"><?php echo htmlspecialchars($lead['email']); ?></small>
                                     </div>
-                                    <p class="mb-1 small"><?php echo htmlspecialchars(substr($lead['message'] ?? '', 0, 60)); ?>...</p>
-                                    <small class="text-muted"><?php echo timeAgo($lead['created_at']); ?></small>
+                                    <span class="badge badge-<?php 
+                                        echo match($lead['status']) {
+                                            'new' => 'danger',
+                                            'follow_up' => 'warning',
+                                            'converted' => 'success',
+                                            'closed' => 'secondary',
+                                            default => 'secondary'
+                                        };
+                                    ?>">
+                                        <?php echo ucfirst(str_replace('_', ' ', $lead['status'])); ?>
+                                    </span>
                                 </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                                <p class="mb-1 small"><?php echo htmlspecialchars(substr($lead['message'] ?? '', 0, 60)); ?>...</p>
+                                <small class="text-muted"><?php echo timeAgo($lead['created_at']); ?></small>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

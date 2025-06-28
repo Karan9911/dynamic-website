@@ -3,17 +3,42 @@ document.addEventListener('DOMContentLoaded', function() {
     // Sidebar toggle functionality
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('adminSidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
     
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function() {
             sidebar.classList.toggle('show');
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.toggle('show');
+            }
         });
+        
+        // Close sidebar when clicking overlay
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            });
+        }
         
         // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function(e) {
             if (window.innerWidth <= 992) {
                 if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
                     sidebar.classList.remove('show');
+                    if (sidebarOverlay) {
+                        sidebarOverlay.classList.remove('show');
+                    }
+                }
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 992) {
+                sidebar.classList.remove('show');
+                if (sidebarOverlay) {
+                    sidebarOverlay.classList.remove('show');
                 }
             }
         });
@@ -55,6 +80,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
             }
         });
+    });
+    
+    // Enhanced table responsiveness
+    const tables = document.querySelectorAll('.table-responsive');
+    tables.forEach(table => {
+        // Add scroll indicators for mobile
+        if (window.innerWidth <= 768) {
+            table.style.position = 'relative';
+            
+            // Add scroll hint
+            const scrollHint = document.createElement('div');
+            scrollHint.className = 'text-muted small text-center mt-2';
+            scrollHint.innerHTML = '<i class="bi bi-arrow-left-right"></i> Scroll horizontally to view more';
+            table.parentNode.insertBefore(scrollHint, table.nextSibling);
+            
+            // Hide hint after first scroll
+            table.addEventListener('scroll', function() {
+                scrollHint.style.display = 'none';
+            }, { once: true });
+        }
     });
     
     // Auto-refresh for real-time updates (optional)

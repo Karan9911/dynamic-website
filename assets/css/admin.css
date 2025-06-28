@@ -12,7 +12,7 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1000;
+    z-index: 1050; /* Higher than sidebar */
 }
 
 .admin-avatar {
@@ -28,10 +28,24 @@
     font-size: 0.9rem;
 }
 
+.admin-avatar-mobile {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
 .admin-container {
     display: flex;
     margin-top: 70px;
     min-height: calc(100vh - 70px);
+    position: relative;
 }
 
 .admin-sidebar {
@@ -44,10 +58,33 @@
     height: calc(100vh - 70px);
     overflow-y: auto;
     transition: transform 0.3s ease;
+    z-index: 1040; /* Below navbar but above content */
+}
+
+.sidebar-overlay {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 70px);
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1035;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
 }
 
 .admin-sidebar.collapsed {
     transform: translateX(-100%);
+}
+
+.admin-sidebar.show {
+    transform: translateX(0);
 }
 
 .sidebar-content {
@@ -82,6 +119,8 @@
     margin-left: 250px;
     padding: 2rem;
     transition: margin-left 0.3s ease;
+    position: relative;
+    z-index: 1;
 }
 
 .admin-content {
@@ -172,6 +211,8 @@
     border: none;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 1;
 }
 
 .card-header {
@@ -185,9 +226,16 @@
     padding: 1.5rem;
 }
 
-/* Tables */
+/* Tables - Enhanced Mobile Responsiveness */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+}
+
 .table {
     margin-bottom: 0;
+    min-width: 800px; /* Ensure minimum width for proper layout */
 }
 
 .table th {
@@ -195,6 +243,7 @@
     font-weight: 600;
     color: #495057;
     padding: 1rem 0.75rem;
+    white-space: nowrap;
 }
 
 .table td {
@@ -204,6 +253,98 @@
 
 .table-hover tbody tr:hover {
     background-color: #f8f9fa;
+}
+
+/* SBAdmin Style Cards */
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.border-left-danger {
+    border-left: 0.25rem solid #e74a3b !important;
+}
+
+.border-left-secondary {
+    border-left: 0.25rem solid #858796 !important;
+}
+
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+
+.text-gray-400 {
+    color: #d1d3e2 !important;
+}
+
+.text-gray-500 {
+    color: #b7b9cc !important;
+}
+
+.shadow {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+}
+
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem 0 rgba(58, 59, 69, 0.2) !important;
+}
+
+/* Badge Styles */
+.badge {
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+}
+
+.badge-primary {
+    background-color: #4e73df;
+    color: white;
+}
+
+.badge-success {
+    background-color: #1cc88a;
+    color: white;
+}
+
+.badge-info {
+    background-color: #36b9cc;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #f6c23e;
+    color: white;
+}
+
+.badge-danger {
+    background-color: #e74a3b;
+    color: white;
+}
+
+.badge-secondary {
+    background-color: #858796;
+    color: white;
+}
+
+.badge-light {
+    background-color: #f8f9fc;
+    color: #5a5c69;
+    border: 1px solid #e3e6f0;
 }
 
 /* Lead List */
@@ -284,13 +425,6 @@
     padding: 1rem 1.5rem;
 }
 
-/* Badges */
-.badge {
-    font-weight: 500;
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-}
-
 /* Message Preview */
 .message-preview {
     max-width: 200px;
@@ -312,6 +446,26 @@
     .admin-main {
         margin-left: 0;
     }
+    
+    /* Make tables more mobile friendly */
+    .table {
+        font-size: 0.875rem;
+        min-width: 700px;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    /* Hide less important columns on mobile */
+    .d-none.d-md-table-cell {
+        display: none !important;
+    }
+    
+    .d-none.d-lg-table-cell {
+        display: none !important;
+    }
 }
 
 @media (max-width: 768px) {
@@ -324,11 +478,68 @@
     }
     
     .table-responsive {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+    }
+    
+    .table {
+        min-width: 600px;
+    }
+    
+    /* Stack action buttons vertically on very small screens */
+    .btn-group-sm .btn {
+        margin-bottom: 0.25rem;
     }
 }
 
-/* Custom Scrollbar */
+@media (max-width: 576px) {
+    .admin-main {
+        padding: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table {
+        font-size: 0.75rem;
+        min-width: 500px;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    /* Make modals full width on very small screens */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .modal-lg {
+        max-width: none;
+    }
+}
+
+/* Custom Scrollbar for Tables */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Custom Scrollbar for Sidebar */
 .admin-sidebar::-webkit-scrollbar {
     width: 4px;
 }

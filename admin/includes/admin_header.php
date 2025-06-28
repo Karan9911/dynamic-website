@@ -18,7 +18,7 @@
     <!-- Admin Header -->
     <nav class="admin-navbar">
         <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center w-100">
                 <div class="d-flex align-items-center">
                     <button class="btn btn-link text-white d-lg-none me-3" id="sidebarToggle">
                         <i class="bi bi-list fs-4"></i>
@@ -29,7 +29,26 @@
                 </div>
                 
                 <div class="d-flex align-items-center">
-                    <div class="dropdown">
+                    <!-- Mobile User Dropdown (visible on mobile only) -->
+                    <div class="dropdown d-lg-none me-2">
+                        <button class="btn btn-link text-white dropdown-toggle d-flex align-items-center p-1" type="button" data-bs-toggle="dropdown">
+                            <div class="admin-avatar-mobile">
+                                <?php echo strtoupper(substr($_SESSION['admin_username'] ?? 'A', 0, 1)); ?>
+                            </div>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="<?php echo SITE_URL; ?>" target="_blank">
+                                <i class="bi bi-globe me-2"></i>View Website
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="logout.php">
+                                <i class="bi bi-box-arrow-right me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Desktop User Dropdown (hidden on mobile) -->
+                    <div class="dropdown d-none d-lg-block">
                         <button class="btn btn-link text-white dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
                             <div class="admin-avatar me-2">
                                 <?php echo strtoupper(substr($_SESSION['admin_username'] ?? 'A', 0, 1)); ?>
@@ -92,6 +111,9 @@
                 </ul>
             </div>
         </aside>
+        
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay d-lg-none" id="sidebarOverlay"></div>
         
         <!-- Main Content -->
         <main class="admin-main">
