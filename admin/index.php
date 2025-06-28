@@ -7,6 +7,9 @@ requireAdminLogin();
 
 $pageTitle = 'Admin Dashboard';
 
+// Get filter parameters for revenue block
+$revenueFilter = $_GET['revenue_filter'] ?? 'monthly';
+
 // Get statistics
 $db = getDB();
 
@@ -19,8 +22,8 @@ try {
         'total_leads' => 0,
         'new_leads' => 0,
         'total_users' => 0,
-        'total_revenue' => 0,
-        'monthly_bookings' => 0
+        'revenue_filtered' => 0,
+        'bookings_filtered' => 0
     ];
     
     // Get therapist counts
@@ -69,28 +72,30 @@ try {
         $stats['total_users'] = $result['count'];
     }
     
-    // Get total revenue
+    // Get filtered revenue and bookings
+    $dateCondition = '';
+    switch ($revenueFilter) {
+        case 'daily':
+            $dateCondition = "DATE(created_at) = CURDATE()";
+            break;
+        case 'monthly':
+            $dateCondition = "MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())";
+            break;
+        case 'yearly':
+            $dateCondition = "YEAR(created_at) = YEAR(CURRENT_DATE())";
+            break;
+    }
+    
     $stmt = $db->prepare("
         SELECT SUM(total_amount) as revenue, COUNT(*) as bookings 
         FROM bookings 
-        WHERE status IN ('confirmed', 'completed')
-    ");
-    if ($stmt->execute()) {
-        $result = $stmt->fetch();
-        $stats['total_revenue'] = $result['revenue'] ?? 0;
-    }
-    
-    // Get monthly bookings
-    $stmt = $db->prepare("
-        SELECT COUNT(*) as bookings 
-        FROM bookings 
-        WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) 
-        AND YEAR(created_at) = YEAR(CURRENT_DATE())
+        WHERE $dateCondition 
         AND status IN ('confirmed', 'completed')
     ");
     if ($stmt->execute()) {
         $result = $stmt->fetch();
-        $stats['monthly_bookings'] = $result['bookings'] ?? 0;
+        $stats['revenue_filtered'] = $result['revenue'] ?? 0;
+        $stats['bookings_filtered'] = $result['bookings'] ?? 0;
     }
     
     // Get recent bookings
@@ -124,8 +129,8 @@ try {
         'total_leads' => 0,
         'new_leads' => 0,
         'total_users' => 0,
-        'total_revenue' => 0,
-        'monthly_bookings' => 0
+        'revenue_filtered' => 0,
+        'bookings_filtered' => 0
     ];
     $recent_bookings = [];
     $recent_leads = [];
@@ -139,6 +144,27 @@ try {
     <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
     <div class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
         <i class="bi bi-calendar text-white-50"></i> <?php echo date('l, F j, Y'); ?>
+    </div>
+</div>
+
+<!-- Revenue Filter -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h5 class="mb-0 font-weight-bold text-primary">Revenue Analytics</h5>
+                <small class="text-muted">Filter revenue and booking data</small>
+            </div>
+            <div class="col-md-6">
+                <form method="GET" class="d-flex gap-2">
+                    <select name="revenue_filter" class="form-select" onchange="this.form.submit()">
+                        <option value="daily" <?php echo $revenueFilter === 'daily' ? 'selected' : ''; ?>>Today</option>
+                        <option value="monthly" <?php echo $revenueFilter === 'monthly' ? 'selected' : ''; ?>>This Month</option>
+                        <option value="yearly" <?php echo $revenueFilter === 'yearly' ? 'selected' : ''; ?>>This Year</option>
+                    </select>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -161,14 +187,14 @@ try {
         </div>
     </div>
 
-    <!-- Monthly Bookings Card -->
+    <!-- Filtered Bookings Card -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-success shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Monthly Bookings</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['monthly_bookings']; ?></div>
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1" id="bookingsLabel"><?php echo ucfirst($revenueFilter); ?> Bookings</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="filteredBookings"><?php echo $stats['bookings_filtered']; ?></div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-calendar-check fa-2x text-gray-300"></i>
@@ -195,14 +221,14 @@ try {
         </div>
     </div>
 
-    <!-- Total Revenue Card -->
+    <!-- Filtered Revenue Card -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-info shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Revenue</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo formatPrice($stats['total_revenue']); ?></div>
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1" id="revenueLabel"><?php echo ucfirst($revenueFilter); ?> Revenue</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="filteredRevenue"><?php echo formatPrice($stats['revenue_filtered']); ?></div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-currency-rupee fa-2x text-gray-300"></i>
@@ -331,4 +357,21 @@ try {
     </div>
 </div>
 
-<?php include 'includes/admin_footer.php'; ?>
+<?php 
+$extraScripts = '<script>
+    // Revenue filter functionality
+    document.querySelectorAll("select[name=\"revenue_filter\"]").forEach(select => {
+        select.addEventListener("change", function() {
+            const filter = this.value;
+            
+            // Update labels
+            document.getElementById("bookingsLabel").textContent = filter.charAt(0).toUpperCase() + filter.slice(1) + " Bookings";
+            document.getElementById("revenueLabel").textContent = filter.charAt(0).toUpperCase() + filter.slice(1) + " Revenue";
+            
+            // Form will submit automatically due to onchange attribute
+        });
+    });
+</script>';
+
+include 'includes/admin_footer.php'; 
+?>
