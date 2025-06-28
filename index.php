@@ -9,35 +9,6 @@ initializeDatabase();
 $pageTitle = 'Home';
 $therapists = getAllTherapists();
 $services = getAllServices();
-
-// Get filter parameters for price block
-$priceFilter = $_GET['price_filter'] ?? 'monthly';
-
-// Calculate filtered stats
-$db = getDB();
-$dateCondition = '';
-switch ($priceFilter) {
-    case 'daily':
-        $dateCondition = "DATE(created_at) = CURDATE()";
-        break;
-    case 'monthly':
-        $dateCondition = "MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())";
-        break;
-    case 'yearly':
-        $dateCondition = "YEAR(created_at) = YEAR(CURRENT_DATE())";
-        break;
-}
-
-$stmt = $db->prepare("
-    SELECT SUM(total_amount) as revenue, COUNT(*) as bookings 
-    FROM bookings 
-    WHERE $dateCondition 
-    AND status IN ('confirmed', 'completed')
-");
-$stmt->execute();
-$priceStats = $stmt->fetch();
-$filteredRevenue = $priceStats['revenue'] ?? 0;
-$filteredBookings = $priceStats['bookings'] ?? 0;
 ?>
 
 <?php include 'includes/header.php'; ?>
@@ -68,28 +39,9 @@ $filteredBookings = $priceStats['bookings'] ?? 0;
     </div>
 </section>
 
-<!-- Stats Section with Price Filter -->
+<!-- Stats Section -->
 <section class="py-5 bg-white">
     <div class="container">
-        <!-- Price Filter -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h3 class="fw-bold mb-0">Business Overview</h3>
-                    <div class="btn-group btn-group-sm" role="group">
-                        <input type="radio" class="btn-check" name="priceFilter" id="daily" value="daily" <?php echo $priceFilter === 'daily' ? 'checked' : ''; ?>>
-                        <label class="btn btn-outline-primary" for="daily">Daily</label>
-                        
-                        <input type="radio" class="btn-check" name="priceFilter" id="monthly" value="monthly" <?php echo $priceFilter === 'monthly' ? 'checked' : ''; ?>>
-                        <label class="btn btn-outline-primary" for="monthly">Monthly</label>
-                        
-                        <input type="radio" class="btn-check" name="priceFilter" id="yearly" value="yearly" <?php echo $priceFilter === 'yearly' ? 'checked' : ''; ?>>
-                        <label class="btn btn-outline-primary" for="yearly">Yearly</label>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
         <div class="row g-4">
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card scale-in">
@@ -99,8 +51,8 @@ $filteredBookings = $priceStats['bookings'] ?? 0;
             </div>
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card scale-in">
-                    <span class="stats-number" id="filteredBookings"><?php echo $filteredBookings; ?></span>
-                    <span class="stats-label" id="bookingsLabel"><?php echo ucfirst($priceFilter); ?> Bookings</span>
+                    <span class="stats-number">500+</span>
+                    <span class="stats-label">Happy Clients</span>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
@@ -111,8 +63,8 @@ $filteredBookings = $priceStats['bookings'] ?? 0;
             </div>
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card scale-in">
-                    <span class="stats-number" id="filteredRevenue"><?php echo formatPrice($filteredRevenue); ?></span>
-                    <span class="stats-label" id="revenueLabel"><?php echo ucfirst($priceFilter); ?> Revenue</span>
+                    <span class="stats-number">5+</span>
+                    <span class="stats-label">Years Experience</span>
                 </div>
             </div>
         </div>
@@ -353,36 +305,4 @@ $filteredBookings = $priceStats['bookings'] ?? 0;
 </section>
 
 <?php include 'includes/booking_modal.php'; ?>
-
-<?php 
-$extraScripts = '<script>
-    // Price filter functionality
-    document.querySelectorAll("input[name=\"priceFilter\"]").forEach(radio => {
-        radio.addEventListener("change", function() {
-            const filter = this.value;
-            
-            // Update URL with filter parameter
-            const url = new URL(window.location);
-            url.searchParams.set("price_filter", filter);
-            window.history.pushState({}, "", url);
-            
-            // Update labels
-            document.getElementById("bookingsLabel").textContent = filter.charAt(0).toUpperCase() + filter.slice(1) + " Bookings";
-            document.getElementById("revenueLabel").textContent = filter.charAt(0).toUpperCase() + filter.slice(1) + " Revenue";
-            
-            // Fetch updated data
-            fetch(`get_filtered_stats.php?filter=${filter}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById("filteredBookings").textContent = data.bookings;
-                        document.getElementById("filteredRevenue").textContent = "₹" + new Intl.NumberFormat("en-IN").format(data.revenue);
-                    }
-                })
-                .catch(error => console.error("Error:", error));
-        });
-    });
-</script>';
-
-include 'includes/footer.php'; 
-?>
+<?php include 'includes/footer.php'; ?>
