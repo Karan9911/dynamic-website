@@ -7,7 +7,7 @@ requireAdminLogin();
 
 $pageTitle = 'Admin Dashboard';
 
-// Get filter parameters for revenue block
+// Get filter parameters
 $revenueFilter = $_GET['revenue_filter'] ?? 'monthly';
 
 // Get statistics
@@ -143,58 +143,39 @@ try {
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
     <div class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-        <i class="bi bi-calendar text-white-50"></i> <?php echo date('l, F j, Y'); ?>
-    </div>
-</div>
-
-<!-- Revenue Filter -->
-<div class="card shadow mb-4">
-    <div class="card-body">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h5 class="mb-0 font-weight-bold text-primary">Revenue Analytics</h5>
-                <small class="text-muted">Filter revenue and booking data</small>
-            </div>
-            <div class="col-md-6">
-                <form method="GET" class="d-flex gap-2">
-                    <select name="revenue_filter" class="form-select" onchange="this.form.submit()">
-                        <option value="daily" <?php echo $revenueFilter === 'daily' ? 'selected' : ''; ?>>Today</option>
-                        <option value="monthly" <?php echo $revenueFilter === 'monthly' ? 'selected' : ''; ?>>This Month</option>
-                        <option value="yearly" <?php echo $revenueFilter === 'yearly' ? 'selected' : ''; ?>>This Year</option>
-                    </select>
-                </form>
-            </div>
-        </div>
+        <i class="bi bi-download text-white-50"></i> Generate Report
     </div>
 </div>
 
 <!-- Content Row -->
 <div class="row">
-    <!-- Total Therapists Card -->
+    <!-- Earnings (Monthly) Card Example -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Therapists</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['total_therapists']; ?></div>
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            <?php echo ucfirst($revenueFilter); ?> Revenue</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo formatPrice($stats['revenue_filtered']); ?></div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-people fa-2x text-gray-300"></i>
+                        <i class="bi bi-currency-rupee fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Filtered Bookings Card -->
+    <!-- Earnings (Monthly) Card Example -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-success shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1" id="bookingsLabel"><?php echo ucfirst($revenueFilter); ?> Bookings</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="filteredBookings"><?php echo $stats['bookings_filtered']; ?></div>
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            <?php echo ucfirst($revenueFilter); ?> Bookings</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['bookings_filtered']; ?></div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-calendar-check fa-2x text-gray-300"></i>
@@ -204,13 +185,44 @@ try {
         </div>
     </div>
 
-    <!-- New Leads Card -->
+    <!-- Tasks Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Active Therapists
+                        </div>
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800"><?php echo $stats['active_therapists']; ?></div>
+                            </div>
+                            <div class="col">
+                                <div class="progress progress-sm mr-2">
+                                    <div class="progress-bar bg-info" role="progressbar"
+                                        style="width: <?php echo $stats['total_therapists'] > 0 ? ($stats['active_therapists'] / $stats['total_therapists']) * 100 : 0; ?>%"
+                                        aria-valuenow="<?php echo $stats['active_therapists']; ?>" aria-valuemin="0"
+                                        aria-valuemax="<?php echo $stats['total_therapists']; ?>"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Requests Card Example -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-warning shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">New Leads</div>
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            New Leads</div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['new_leads']; ?></div>
                     </div>
                     <div class="col-auto">
@@ -220,19 +232,63 @@ try {
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Filtered Revenue Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-info shadow h-100 py-2">
+<!-- Content Row -->
+<div class="row">
+    <!-- Revenue Filter -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Revenue Overview</h6>
+                <div class="dropdown no-arrow">
+                    <form method="GET" class="d-inline">
+                        <select name="revenue_filter" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="daily" <?php echo $revenueFilter === 'daily' ? 'selected' : ''; ?>>Today</option>
+                            <option value="monthly" <?php echo $revenueFilter === 'monthly' ? 'selected' : ''; ?>>This Month</option>
+                            <option value="yearly" <?php echo $revenueFilter === 'yearly' ? 'selected' : ''; ?>>This Year</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1" id="revenueLabel"><?php echo ucfirst($revenueFilter); ?> Revenue</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="filteredRevenue"><?php echo formatPrice($stats['revenue_filtered']); ?></div>
+                <div class="chart-area">
+                    <div class="text-center py-5">
+                        <i class="bi bi-bar-chart display-4 text-gray-300"></i>
+                        <h5 class="text-gray-500 mt-3">Revenue Chart</h5>
+                        <p class="text-gray-400">Chart integration ready for Chart.js or similar library</p>
                     </div>
-                    <div class="col-auto">
-                        <i class="bi bi-currency-rupee fa-2x text-gray-300"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie Chart -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <!-- Card Header - Dropdown -->
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Revenue Sources</h6>
+            </div>
+            <!-- Card Body -->
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <div class="text-center">
+                        <i class="bi bi-pie-chart display-4 text-gray-300"></i>
+                        <h6 class="text-gray-500 mt-3">Pie Chart</h6>
+                        <p class="text-gray-400 small">Chart integration ready</p>
                     </div>
+                </div>
+                <div class="mt-4 text-center small">
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-primary"></i> Direct
+                    </span>
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-success"></i> Social
+                    </span>
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-info"></i> Referral
+                    </span>
                 </div>
             </div>
         </div>
@@ -242,13 +298,10 @@ try {
 <!-- Content Row -->
 <div class="row">
     <!-- Recent Bookings -->
-    <div class="col-lg-8">
+    <div class="col-lg-8 mb-4">
         <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">Recent Bookings</h6>
-                <a href="bookings.php" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                    <i class="bi bi-eye text-white-50"></i> View All
-                </a>
             </div>
             <div class="card-body">
                 <?php if (empty($recent_bookings)): ?>
@@ -259,7 +312,7 @@ try {
                     </div>
                 <?php else: ?>
                     <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
                                     <th>Customer</th>
@@ -310,13 +363,10 @@ try {
     </div>
 
     <!-- Recent Leads -->
-    <div class="col-lg-4">
+    <div class="col-lg-4 mb-4">
         <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">Recent Leads</h6>
-                <a href="leads.php" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                    <i class="bi bi-eye text-white-50"></i> View All
-                </a>
             </div>
             <div class="card-body">
                 <?php if (empty($recent_leads)): ?>
@@ -326,30 +376,30 @@ try {
                         <p class="text-gray-400">Leads will appear here when customers submit inquiries.</p>
                     </div>
                 <?php else: ?>
-                    <div class="lead-list">
-                        <?php foreach ($recent_leads as $lead): ?>
-                            <div class="lead-item">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1"><?php echo htmlspecialchars($lead['full_name']); ?></h6>
-                                        <small class="text-muted"><?php echo htmlspecialchars($lead['email']); ?></small>
-                                    </div>
-                                    <span class="badge badge-<?php 
-                                        echo match($lead['status']) {
-                                            'new' => 'danger',
-                                            'follow_up' => 'warning',
-                                            'converted' => 'success',
-                                            'closed' => 'secondary',
-                                            default => 'secondary'
-                                        };
-                                    ?>">
-                                        <?php echo ucfirst(str_replace('_', ' ', $lead['status'])); ?>
-                                    </span>
+                    <?php foreach ($recent_leads as $lead): ?>
+                        <div class="d-flex align-items-center border-bottom py-3">
+                            <div class="mr-3">
+                                <div class="icon-circle bg-<?php 
+                                    echo match($lead['status']) {
+                                        'new' => 'danger',
+                                        'follow_up' => 'warning',
+                                        'converted' => 'success',
+                                        'closed' => 'secondary',
+                                        default => 'secondary'
+                                    };
+                                ?>">
+                                    <i class="bi bi-person text-white"></i>
                                 </div>
-                                <p class="mb-1 small"><?php echo htmlspecialchars(substr($lead['message'] ?? '', 0, 60)); ?>...</p>
-                                <small class="text-muted"><?php echo timeAgo($lead['created_at']); ?></small>
                             </div>
-                        <?php endforeach; ?>
+                            <div class="flex-grow-1">
+                                <div class="small text-gray-500"><?php echo timeAgo($lead['created_at']); ?></div>
+                                <strong><?php echo htmlspecialchars($lead['full_name']); ?></strong>
+                                <div class="small text-truncate"><?php echo htmlspecialchars(substr($lead['message'] ?? '', 0, 50)); ?>...</div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                    <div class="text-center mt-3">
+                        <a class="btn btn-primary btn-sm" href="leads.php">View All Leads</a>
                     </div>
                 <?php endif; ?>
             </div>
@@ -357,21 +407,4 @@ try {
     </div>
 </div>
 
-<?php 
-$extraScripts = '<script>
-    // Revenue filter functionality
-    document.querySelectorAll("select[name=\"revenue_filter\"]").forEach(select => {
-        select.addEventListener("change", function() {
-            const filter = this.value;
-            
-            // Update labels
-            document.getElementById("bookingsLabel").textContent = filter.charAt(0).toUpperCase() + filter.slice(1) + " Bookings";
-            document.getElementById("revenueLabel").textContent = filter.charAt(0).toUpperCase() + filter.slice(1) + " Revenue";
-            
-            // Form will submit automatically due to onchange attribute
-        });
-    });
-</script>';
-
-include 'includes/admin_footer.php'; 
-?>
+<?php include 'includes/admin_footer.php'; ?>
