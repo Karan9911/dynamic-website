@@ -19,7 +19,7 @@
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="booking-tab" data-bs-toggle="pill" data-bs-target="#booking" type="button" role="tab">
-                                <i class="bi bi-credit-card me-2"></i>Book & Pay Online
+                                <i class="bi bi-credit-card me-2"></i>Book & Pay
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -79,8 +79,14 @@
                         <div class="tab-pane fade" id="booking" role="tabpanel">
                             <?php if (isUserLoggedIn()): ?>
                                 <div class="booking-header mb-4">
-                                    <h6 class="fw-bold text-success">Book & Pay Online</h6>
-                                    <p class="text-muted mb-0">Secure online booking with instant confirmation.</p>
+                                    <h6 class="fw-bold text-success">Book Appointment</h6>
+                                    <p class="text-muted mb-0">
+                                        <?php if (isPaymentEnabled()): ?>
+                                            Secure online booking with instant confirmation.
+                                        <?php else: ?>
+                                            Book now and pay at the spa.
+                                        <?php endif; ?>
+                                    </p>
                                 </div>
                                 
                                 <form id="bookingForm" class="needs-validation" novalidate>
@@ -131,7 +137,7 @@
                                     
                                     <div class="payment-section mt-4">
                                         <h6 class="fw-bold mb-3">
-                                            <i class="bi bi-credit-card me-2"></i>Payment Information
+                                            <i class="bi bi-currency-rupee me-2"></i>Payment Information
                                         </h6>
                                         <div class="payment-amount-display mb-3">
                                             <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
@@ -140,7 +146,7 @@
                                             </div>
                                         </div>
                                         
-                                        <?php if (RAZORPAY_ENABLED): ?>
+                                        <?php if (isPaymentEnabled()): ?>
                                             <div class="alert alert-info">
                                                 <i class="bi bi-info-circle me-2"></i>
                                                 <strong>Secure Payment:</strong> Your payment is processed securely through Razorpay.
@@ -148,19 +154,19 @@
                                         <?php else: ?>
                                             <div class="alert alert-warning">
                                                 <i class="bi bi-exclamation-triangle me-2"></i>
-                                                <strong>Payment Gateway Disabled:</strong> You can book now and pay at the spa.
+                                                <strong>Pay at Spa:</strong> Online payment is currently disabled. You can pay at the spa.
                                             </div>
                                         <?php endif; ?>
                                     </div>
                                     
                                     <div class="d-grid mt-4">
-                                        <?php if (RAZORPAY_ENABLED): ?>
+                                        <?php if (isPaymentEnabled()): ?>
                                             <button type="submit" class="btn btn-success btn-lg">
                                                 <i class="bi bi-credit-card me-2"></i>Pay Now & Book
                                             </button>
                                         <?php else: ?>
                                             <button type="submit" class="btn btn-primary btn-lg">
-                                                <i class="bi bi-calendar-check me-2"></i>Book Now (Pay Later)
+                                                <i class="bi bi-calendar-check me-2"></i>Book Now (Pay at Spa)
                                             </button>
                                         <?php endif; ?>
                                     </div>
@@ -169,7 +175,7 @@
                                 <div class="text-center py-5">
                                     <i class="bi bi-lock display-4 text-muted mb-3"></i>
                                     <h5>Login Required</h5>
-                                    <p class="text-muted mb-4">Please login to book appointments and make online payments.</p>
+                                    <p class="text-muted mb-4">Please login to book appointments.</p>
                                     <a href="login.php" class="btn btn-primary">
                                         <i class="bi bi-box-arrow-in-right me-2"></i>Login Now
                                     </a>
@@ -211,6 +217,14 @@
 </div>
 
 <!-- Razorpay Script -->
-<?php if (RAZORPAY_ENABLED): ?>
+<?php if (isPaymentEnabled()): ?>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    window.PAYMENT_ENABLED = true;
+    window.RAZORPAY_KEY = '<?php echo getSetting('razorpay_key_id', RAZORPAY_KEY_ID); ?>';
+</script>
+<?php else: ?>
+<script>
+    window.PAYMENT_ENABLED = false;
+</script>
 <?php endif; ?>

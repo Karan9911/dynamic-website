@@ -188,62 +188,54 @@ function handleBookingSubmission(e) {
     const formData = new FormData(form);
     const amount = parseFloat(formData.get('total_amount'));
     
-    // Check if Razorpay is enabled and amount is valid
-    if (window.razorpayEnabled && amount > 0) {
-        // Create Razorpay order
-        fetch('create_razorpay_order.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Initialize Razorpay payment
-                const options = {
-                    key: data.razorpay_key,
-                    amount: data.order.amount,
-                    currency: data.order.currency,
-                    name: 'Serenity Spa',
-                    description: 'Spa Session Booking',
-                    order_id: data.order.id,
-                    handler: function(response) {
-                        // Payment successful, verify and complete booking
-                        verifyPaymentAndCompleteBooking(response, formData);
-                    },
-                    prefill: {
-                        name: formData.get('full_name'),
-                        email: formData.get('email'),
-                        contact: formData.get('phone')
-                    },
-                    theme: {
-                        color: '#2E8B57'
+    // Process booking based on payment settings
+    fetch('process_booking.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.payment_required && window.PAYMENT_ENABLED) {
+                // Payment is required - create Razorpay order
+                return fetch('create_razorpay_order.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(paymentData => {
+                    if (paymentData.success) {
+                        // Initialize Razorpay payment
+                        const options = {
+                            key: paymentData.razorpay_key,
+                            amount: paymentData.order.amount,
+                            currency: paymentData.order.currency,
+                            name: 'Serenity Spa',
+                            description: 'Spa Session Booking',
+                            order_id: paymentData.order.id,
+                            handler: function(response) {
+                                // Payment successful, verify and complete booking
+                                verifyPaymentAndCompleteBooking(response, formData);
+                            },
+                            prefill: {
+                                name: formData.get('full_name'),
+                                email: formData.get('email'),
+                                contact: formData.get('phone')
+                            },
+                            theme: {
+                                color: '#4e73df'
+                            }
+                        };
+                        
+                        const rzp = new Razorpay(options);
+                        rzp.open();
+                    } else {
+                        showAlert('danger', paymentData.message || 'Failed to initialize payment.');
                     }
-                };
-                
-                const rzp = new Razorpay(options);
-                rzp.open();
+                });
             } else {
-                showAlert('danger', data.message || 'Failed to initialize payment.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert('danger', 'Payment initialization failed.');
-        })
-        .finally(() => {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        });
-    } else {
-        // Process booking without payment
-        fetch('process_booking.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('success', 'Booking confirmed! You will receive a confirmation email shortly.');
+                // No payment required - booking completed
+                showAlert('success', data.message);
                 form.reset();
                 form.classList.remove('was-validated');
                 
@@ -252,19 +244,19 @@ function handleBookingSubmission(e) {
                     const modal = bootstrap.Modal.getInstance(document.getElementById('bookingModal'));
                     if (modal) modal.hide();
                 }, 2000);
-            } else {
-                showAlert('danger', data.message || 'Booking failed. Please try again.');
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert('danger', 'An error occurred. Please try again.');
-        })
-        .finally(() => {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        });
-    }
+        } else {
+            showAlert('danger', data.message || 'Booking failed. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'An error occurred. Please try again.');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
 }
 
 function verifyPaymentAndCompleteBooking(paymentResponse, formData) {
@@ -442,6 +434,3 @@ window.changeMainImage = changeMainImage;
 window.openBookingModal = openBookingModal;
 window.openWhatsAppChat = openWhatsAppChat;
 window.showAlert = showAlert;
-
-// Set Razorpay availability globally
-window.razorpayEnabled = typeof RAZORPAY_ENABLED !== 'undefined' ? RAZORPAY_ENABLED : false;

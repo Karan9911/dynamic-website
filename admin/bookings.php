@@ -32,8 +32,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Get all bookings
-$bookings = getAllBookings();
+// Get filter parameters
+$statusFilter = $_GET['status'] ?? 'all';
+$paymentFilter = $_GET['payment'] ?? 'all';
+
+// Build query with filters
+$whereConditions = [];
+$params = [];
+
+if ($statusFilter !== 'all') {
+    $whereConditions[] = "b.status = ?";
+    $params[] = $statusFilter;
+}
+
+if ($paymentFilter !== 'all') {
+    $whereConditions[] = "b.payment_status = ?";
+    $params[] = $paymentFilter;
+}
+
+$whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+
+// Get all bookings with filters
+$db = getDB();
+$stmt = $db->prepare("
+    SELECT b.*, t.name as therapist_name 
+    FROM bookings b 
+    LEFT JOIN therapists t ON b.therapist_id = t.id 
+    $whereClause
+    ORDER BY b.created_at DESC
+");
+$stmt->execute($params);
+$bookings = $stmt->fetchAll();
 ?>
 
 <?php include 'includes/admin_header.php'; ?>
@@ -54,6 +83,47 @@ $bookings = getAllBookings();
     </div>
 <?php endif; ?>
 
+<!-- Filters -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Filter Bookings</h6>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                    <option value="all" <?php echo $statusFilter === 'all' ? 'selected' : ''; ?>>All Status</option>
+                    <option value="pending" <?php echo $statusFilter === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                    <option value="confirmed" <?php echo $statusFilter === 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
+                    <option value="completed" <?php echo $statusFilter === 'completed' ? 'selected' : ''; ?>>Completed</option>
+                    <option value="cancelled" <?php echo $statusFilter === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Payment Status</label>
+                <select class="form-select" name="payment">
+                    <option value="all" <?php echo $paymentFilter === 'all' ? 'selected' : ''; ?>>All Payment Types</option>
+                    <option value="completed" <?php echo $paymentFilter === 'completed' ? 'selected' : ''; ?>>Paid Online</option>
+                    <option value="cash" <?php echo $paymentFilter === 'cash' ? 'selected' : ''; ?>>Pay at Spa</option>
+                    <option value="pending" <?php echo $paymentFilter === 'pending' ? 'selected' : ''; ?>>Payment Pending</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel me-2"></i>Filter
+                    </button>
+                    <a href="bookings.php" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- DataTales Example -->
 <div class="card shadow mb-4">
     <div class="card-header py-3">
@@ -67,8 +137,8 @@ $bookings = getAllBookings();
                 <p class="text-gray-400">Bookings will appear here once customers start making appointments.</p>
             </div>
         <?php else: ?>
-            <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <div class="admin-table-container">
+                <table class="table table-bordered admin-table" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -76,6 +146,7 @@ $bookings = getAllBookings();
                             <th>Therapist</th>
                             <th>Appointment</th>
                             <th>Amount</th>
+                            <th>Payment</th>
                             <th>Status</th>
                             <th>Created</th>
                             <th>Actions</th>
@@ -109,6 +180,19 @@ $bookings = getAllBookings();
                                 </td>
                                 <td>
                                     <span class="font-weight-bold text-success"><?php echo formatPrice($booking['total_amount']); ?></span>
+                                </td>
+                                <td>
+                                    <span class="badge payment-status-<?php echo $booking['payment_status']; ?>">
+                                        <?php 
+                                        echo match($booking['payment_status']) {
+                                            'completed' => 'Paid Online',
+                                            'cash' => 'Pay at Spa',
+                                            'pending' => 'Payment Pending',
+                                            'failed' => 'Payment Failed',
+                                            default => ucfirst($booking['payment_status'])
+                                        };
+                                        ?>
+                                    </span>
                                 </td>
                                 <td>
                                     <span class="badge badge-<?php 

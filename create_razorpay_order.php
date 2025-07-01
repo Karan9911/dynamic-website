@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!RAZORPAY_ENABLED) {
+if (!isPaymentEnabled()) {
     echo json_encode(['success' => false, 'message' => 'Payment gateway is disabled']);
     exit;
 }
@@ -41,10 +41,12 @@ try {
     $result = createRazorpayOrder($amount);
     
     if ($result['success']) {
+        $keyId = getSetting('razorpay_key_id', RAZORPAY_KEY_ID);
+        
         echo json_encode([
             'success' => true,
             'order' => $result['order'],
-            'razorpay_key' => RAZORPAY_KEY_ID
+            'razorpay_key' => $keyId
         ]);
     } else {
         echo json_encode(['success' => false, 'message' => $result['message']]);

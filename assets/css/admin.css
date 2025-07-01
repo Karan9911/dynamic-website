@@ -423,6 +423,16 @@ body {
     border: 0;
 }
 
+/* Mobile Responsive Tables */
+.admin-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.admin-table {
+    min-width: 800px;
+}
+
 /* Badges */
 .badge {
     display: inline-block;
@@ -600,48 +610,6 @@ body {
     font-weight: 800;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 6.5rem !important;
-    }
-    
-    .sidebar .nav-item .nav-link {
-        width: 6.5rem;
-        text-align: center;
-        padding: 0.75rem 1rem;
-    }
-    
-    .sidebar .nav-item .nav-link span {
-        font-size: 0.65rem;
-        display: block;
-    }
-    
-    .sidebar .nav-item .nav-link i {
-        display: block;
-        font-size: 1.2rem;
-        margin-right: 0;
-    }
-    
-    .sidebar .sidebar-brand .sidebar-brand-text {
-        display: none;
-    }
-    
-    .sidebar .sidebar-heading {
-        text-align: center;
-    }
-    
-    .topbar .navbar-search {
-        width: 15rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .topbar .navbar-search {
-        display: none;
-    }
-}
-
 /* Custom Stat Cards */
 .stat-card {
     background: #fff;
@@ -761,3 +729,159 @@ body {
 .bg-gray-700 { background-color: #6e707e !important; }
 .bg-gray-800 { background-color: #5a5c69 !important; }
 .bg-gray-900 { background-color: #3a3b45 !important; }
+
+/* Mobile Responsive Improvements */
+@media (max-width: 768px) {
+    /* Sidebar adjustments */
+    .sidebar {
+        width: 6.5rem !important;
+    }
+    
+    .sidebar .nav-item .nav-link {
+        width: 6.5rem;
+        text-align: center;
+        padding: 0.75rem 1rem;
+    }
+    
+    .sidebar .nav-item .nav-link span {
+        font-size: 0.65rem;
+        display: block;
+    }
+    
+    .sidebar .nav-item .nav-link i {
+        display: block;
+        font-size: 1.2rem;
+        margin-right: 0;
+    }
+    
+    .sidebar .sidebar-brand .sidebar-brand-text {
+        display: none;
+    }
+    
+    .sidebar .sidebar-heading {
+        text-align: center;
+    }
+    
+    /* Table improvements */
+    .admin-table {
+        font-size: 14px;
+        min-width: 600px;
+    }
+    
+    .admin-table th,
+    .admin-table td {
+        padding: 0.5rem 0.25rem;
+        white-space: nowrap;
+    }
+    
+    /* Card adjustments */
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Button groups */
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+    }
+    
+    /* Topbar search */
+    .topbar .navbar-search {
+        width: 15rem;
+    }
+    
+    /* Modal adjustments */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    /* Stats cards */
+    .stat-card {
+        margin-bottom: 1rem;
+        padding: 1rem;
+    }
+    
+    .stat-card .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    /* Page headings */
+    .h3 {
+        font-size: 1.5rem;
+    }
+    
+    /* Alert adjustments */
+    .alert {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Extra small devices */
+    .topbar .navbar-search {
+        display: none;
+    }
+    
+    .admin-table {
+        font-size: 12px;
+        min-width: 500px;
+    }
+    
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .btn {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .modal-dialog {
+        margin: 0.25rem;
+    }
+    
+    .stat-card .stat-number {
+        font-size: 1.25rem;
+    }
+    
+    .h3 {
+        font-size: 1.25rem;
+    }
+}
+
+/* Payment Status Badges */
+.payment-status-paid {
+    background-color: #1cc88a;
+    color: white;
+}
+
+.payment-status-cash {
+    background-color: #f6c23e;
+    color: #212529;
+}
+
+.payment-status-pending {
+    background-color: #858796;
+    color: white;
+}
+
+/* Settings Toggle Switch */
+.form-check-input:checked {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.form-switch .form-check-input {
+    width: 2em;
+    margin-left: -2.5em;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%280,0,0,0.25%29'/%3e%3c/svg%3e");
+    background-position: left center;
+    border-radius: 2em;
+    transition: background-position .15s ease-in-out;
+}
+
+.form-switch .form-check-input:checked {
+    background-position: right center;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255,255,255,1.0%29'/%3e%3c/svg%3e");
+}

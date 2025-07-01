@@ -91,8 +91,16 @@
 
             <!-- Heading -->
             <div class="sidebar-heading">
-                Quick Actions
+                Configuration
             </div>
+
+            <!-- Nav Item - Settings -->
+            <li class="nav-item <?php echo basename($_SERVER['PHP_SELF']) === 'settings.php' ? 'active' : ''; ?>">
+                <a class="nav-link" href="settings.php">
+                    <i class="bi bi-sliders"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
 
             <!-- Nav Item - View Website -->
             <li class="nav-item">
@@ -155,6 +163,16 @@
                                     </div>
                                 </form>
                             </div>
+                        </li>
+
+                        <!-- Nav Item - Payment Status Indicator -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link" href="settings.php" title="Payment Settings">
+                                <i class="bi bi-<?php echo isPaymentEnabled() ? 'credit-card text-success' : 'credit-card-2-front text-warning'; ?>"></i>
+                                <?php if (!isPaymentEnabled()): ?>
+                                    <span class="badge badge-warning badge-counter">!</span>
+                                <?php endif; ?>
+                            </a>
                         </li>
 
                         <!-- Nav Item - Alerts -->
@@ -266,7 +284,7 @@
                                     <i class="bi bi-person mr-2 text-gray-400"></i>
                                     Profile
                                 </a>
-                                <a class="dropdown-item" href="#">
+                                <a class="dropdown-item" href="settings.php">
                                     <i class="bi bi-gear mr-2 text-gray-400"></i>
                                     Settings
                                 </a>
